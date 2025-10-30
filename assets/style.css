@@ -81,14 +81,13 @@ label {
 }
 
 /* --- Estilos das Abas (Tabs) --- */
+/* Remove a borda padrão do Dash */
 .Tabs {
-    border-bottom: 1px solid #4a4a4a !important;
-    background-color: transparent !important;
+    border-bottom: none !important;
 }
 
-/* CORREÇÃO: Usamos a classe padrão '.dash-tab' */
+/* Estilo da aba NÃO selecionada (usando a classe padrão) */
 .dash-tab {
-    /* Estilo da aba NÃO selecionada */
     background-color: #2a2a2a !important; /* Fundo escuro */
     color: #f0f0f0 !important;           /* Texto claro (BRANCO) */
     border: 1px solid #444 !important;
@@ -103,9 +102,8 @@ label {
     background-color: #3a3a3a !important;
 }
 
-/* CORREÇÃO: Usamos a classe padrão '.dash-tab--selected' */
+/* Estilo da aba SELECIONADA (usando a classe padrão) */
 .dash-tab--selected {
-    /* Estilo da aba SELECIONADA */
     background-color: #2a2a2a !important;
     color: #00aaff !important;            /* Texto azul de destaque */
     border-top: 3px solid #00aaff !important;

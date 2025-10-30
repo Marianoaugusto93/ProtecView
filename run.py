@@ -9,27 +9,14 @@ from layouts import layout_home, layout_sym, layout_dist, layout_tcc
 # Importa os callbacks
 import callbacks
 
-# --- [NOVA ABORDAGEM] Definir Estilos das Abas em Python ---
-
-# Estilo para as abas NÃO selecionadas
-TAB_STYLE = {
-    'backgroundColor': '#2a2a2a',
-    'color': '#f0f0f0',
-    'border': '1px solid #444',
-    'borderBottom': 'none',
-    'padding': '12px 18px',
-    'borderRadius': '8px 8px 0 0',
-    'fontWeight': 'bold'
+# --- [CORREÇÃO] Definir Estilos das Abas com o métod 'colors' ---
+# Esta é a forma correta de estilizar abas no dash==3.2.0
+TAB_COLORS = {
+    "background": "#2a2a2a",  # Cor de fundo da aba NÃO selecionada
+    "primary": "#00aaff",  # Cor do texto da aba SELECIONADA
+    "border": "#4a4a4a"  # Cor da borda inferior
 }
-
-# Estilo para a aba SELECIONADA
-# Começamos com uma cópia do estilo base
-SELECTED_TAB_STYLE = TAB_STYLE.copy()
-# E agora alteramos apenas o que é diferente
-SELECTED_TAB_STYLE['color'] = '#00aaff'
-SELECTED_TAB_STYLE['borderTop'] = '3px solid #00aaff'
-SELECTED_TAB_STYLE['borderBottom'] = '1px solid #2a2a2a'  # Para "fundir" com o conteúdo
-# --- [FIM DA NOVA ABORDAGEM] ---
+# --- [FIM DA CORREÇÃO] ---
 
 
 # --- 2. Definir o Layout da Aplicação ---
@@ -64,11 +51,9 @@ app.layout = html.Div(children=[
              value='tab-home',
 
              # --- [ALTERAÇÃO CRÍTICA] ---
-             # Removemos o 'className="Tabs"'
-             # E adicionamos os estilos inline que acabámos de definir:
-             style={'height': '50px'},  # Altura para a barra de abas
-             tab_style=TAB_STYLE,
-             selected_tab_style=SELECTED_TAB_STYLE
+             # Removemos os argumentos 'tab_style' e 'selected_tab_style'
+             # E adicionamos o argumento 'colors'
+             colors=TAB_COLORS
              ),
 
 ])  # Fim do Layout
