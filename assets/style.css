@@ -105,87 +105,87 @@ label {
 
 
 /* --- [NOVO] Estilos das Abas (Tabs) --- */
+/* --- [NOVO] Estilos das Abas (Tabs) --- */
 .Tabs {
     /* Remove a borda padrão do container das abas */
-    border-bottom: 1px solid #4a4a4a;
+    border-bottom: 1px solid #4a4a4a !important;
+    background-color: transparent !important;
 }
 
 .Tab {
     /* Estilo da aba não selecionada */
-    background-color: #2a2a2a; /* Cor do "cartão" */
-    color: #f0f0f0;
+    background-color: #2a2a2a !important; /* Fundo escuro */
+    color: #f0f0f0 !important;           /* Texto claro */
     border: 1px solid #444 !important;
     border-bottom: none !important;
     padding: 12px 18px !important;
-    border-radius: 8px 8px 0 0 !important; /* Cantos arredondados no topo */
+    border-radius: 8px 8px 0 0 !important;
     margin-right: 3px;
     font-weight: bold;
 }
 
 .Tab:hover {
-    background-color: #3a3a3a;
+    background-color: #3a3a3a !important;
 }
 
 .Tab--selected {
     /* Estilo da aba SELECIONADA */
-    background-color: #1e1e1e !important; /* Cor do fundo principal */
-    color: #00aaff !important; /* Cor de destaque */
-    border-top: 3px solid #00aaff !important; /* Linha de destaque */
-    /* A borda de baixo "funde" com o container de conteúdo */
-    border-bottom: 1px solid #1e1e1e !important;
-    position: relative;
-    top: 1px; /* Truque para fazer a borda de baixo desaparecer */
+    background-color: #2a2a2a !important;  /* Fundo escuro (igual ao .module-container) */
+    color: #00aaff !important;            /* Cor de destaque */
+    border-top: 3px solid #00aaff !important;
+    border-bottom: 1px solid #2a2a2a !important; /* "Funde" com o container */
 }
 
 /* Quando um 'module-container' está dentro de uma aba,
   não queremos que ele tenha margem no topo ou cantos arredondados em cima.
 */
-.Tab-content .module-container {
+.tab-content .module-container {
     border-top: none;
     margin-top: 0;
     border-radius: 0 0 8px 8px;
 }
 
+
 /* Estilo para os Dropdowns */
+
+/* --- [NOVO] Estilos de Dropdown Corrigidos --- */
 .DashDropdown .Select-control {
-    background-color: #343a40; /* Fundo mais escuro para o controle padrão */
-    border: 1px solid #4a545e; /* Borda visível */
-    color: #e0e0e0; /* Texto claro */
+    background-color: #333 !important; /* Fundo da caixa */
+    border: 1px solid #555 !important;
 }
 
 .DashDropdown .Select-value-label {
-    color: #e0e0e0 !important; /* Texto do valor selecionado */
+    color: #f0f0f0 !important; /* Texto do item selecionado */
 }
 
-.DashDropdown .Select--single > .Select-control .Select-value {
-    padding-right: 25px; /* Espaço para a seta */
+.DashDropdown .Select-arrow {
+    border-color: #f0f0f0 transparent transparent !important; /* Seta */
 }
 
-/* Estilo para o menu suspenso (quando o dropdown está aberto) */
+/* Menu de opções (quando aberto) */
 .DashDropdown .Select-menu-outer {
-    background-color: #2c2f33; /* Fundo do menu ligeiramente mais claro que o controle ou do fundo geral */
-    border: 1px solid #4a545e;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    background-color: #333 !important;
+    border: 1px solid #555 !important;
 }
 
-/* Estilo para cada opção no menu */
 .DashDropdown .Select-option {
-    background-color: #2c2f33; /* Fundo da opção normal */
-    color: #e0e0e0; /* Texto da opção normal */
-    padding: 10px;
+    background-color: #333 !important;
+    color: #f0f0f0 !important; /* Texto da opção */
+    border-bottom: 1px solid #444;
 }
 
-/* Estilo quando o rato passa por cima de uma opção (hover) */
+/* Opção com rato por cima (hover) */
 .DashDropdown .Select-option.is-focused {
-    background-color: #007bff; /* Azul claro para o hover */
-    color: white; /* Texto branco no hover */
+    background-color: #00aaff !important; /* Destaque azul */
+    color: #ffffff !important;           /* Texto branco */
 }
 
-/* Estilo quando uma opção é selecionada */
+/* Opção selecionada (na lista) */
 .DashDropdown .Select-option.is-selected {
-    background-color: #0056b3; /* Azul mais escuro para a opção selecionada */
-    color: white; /* Texto branco na selecionada */
+    background-color: #0077cc !important;
+    color: #ffffff !important;
 }
+
 
 /* Estilo para a seta do dropdown */
 .DashDropdown .Select-arrow {

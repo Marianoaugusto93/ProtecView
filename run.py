@@ -9,7 +9,6 @@ from layouts import layout_home, layout_sym, layout_dist, layout_tcc
 # os "veja" e registe. Não precisamos de usar nada dele diretamente.
 import callbacks
 
-# --- 2. Definir o Layout da Aplicação (AGORA COM ABAS) ---
 app.layout = html.Div(children=[
 
     html.H1(children='ProtecView: Ferramentas de Análise de Sistemas Elétricos'),
@@ -20,29 +19,29 @@ app.layout = html.Div(children=[
         # --- Aba 1: Home ---
         dcc.Tab(label='Home', children=[
             layout_home  # Usa a variável importada
-        ]),
+        ], value='tab-home'),  # <-- ADICIONA ESTE VALUE
 
         # --- Aba 2: Componentes Simétricos ---
         dcc.Tab(label='Componentes Simétricos', children=[
             layout_sym  # Usa a variável importada
-        ]),
+        ], value='tab-sym'),  # <-- ADICIONA ESTE VALUE
 
         # --- Aba 3: Proteção de Distância ---
         dcc.Tab(label='Proteção de Distância', children=[
             layout_dist  # Usa a variável importada
-        ]),
+        ], value='tab-dist'),  # <-- ADICIONA ESTE VALUE
 
         # --- Aba 4: Curvas TCC ---
         dcc.Tab(label='Curvas TCC', children=[
             layout_tcc  # Usa a variável importada
-        ]),
+        ], value='tab-tcc'),  # <-- ADICIONA ESTE VALUE
 
-    ], className="Tabs",  # Adiciona classes de CSS
-             value='tab-home'  # Define a aba padrão
+    ],
+             className="Tabs",  # Adiciona classes de CSS
+             value='tab-home'  # Esta linha agora vai funcionar!
              ),
 
 ])
-
 # --- 4. Executar o Servidor ---
 #if __name__ == '__main__':
     # Nota: Estamos a executar 'app.run', não 'run.run'
