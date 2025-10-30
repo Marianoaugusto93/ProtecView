@@ -18,27 +18,29 @@ app.layout = html.Div(children=[
 
         # --- Aba 1: Home ---
         dcc.Tab(label='Home', children=[
-            layout_home  # Usa a variável importada
-        ], value='tab-home'),  # <-- ADICIONA ESTE VALUE
+            layout_home
+        ], value='tab-home'),
 
         # --- Aba 2: Componentes Simétricos ---
         dcc.Tab(label='Componentes Simétricos', children=[
-            layout_sym  # Usa a variável importada
-        ], value='tab-sym'),  # <-- ADICIONA ESTE VALUE
+            layout_sym
+        ], value='tab-sym'),
 
         # --- Aba 3: Proteção de Distância ---
         dcc.Tab(label='Proteção de Distância', children=[
-            layout_dist  # Usa a variável importada
-        ], value='tab-dist'),  # <-- ADICIONA ESTE VALUE
+            layout_dist
+        ], value='tab-dist'),
 
         # --- Aba 4: Curvas TCC ---
         dcc.Tab(label='Curvas TCC', children=[
-            layout_tcc  # Usa a variável importada
-        ], value='tab-tcc'),  # <-- ADICIONA ESTE VALUE
+            layout_tcc
+        ], value='tab-tcc'),
 
     ],
-             className="Tabs",  # Adiciona classes de CSS
-             value='tab-home'  # Esta linha agora vai funcionar!
+             className="Tabs",
+             value='tab-home',
+             tab_className="Tab",  # <-- ADICIONA ESTA LINHA
+             selected_tab_className="Tab--selected"  # <-- ADICIONA ESTA LINHA
              ),
 
 ])
