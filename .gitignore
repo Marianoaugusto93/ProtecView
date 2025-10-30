@@ -1,0 +1,10 @@
+# Ambiente Virtual
+.venv/
+venv/
+*.pyc
+
+# Ficheiros do PyCharm
+.idea/
+
+# Ficheiros do Mac
+.DS_Store
