@@ -1,14 +1,16 @@
-from dash import Input, Output, State
+from dash import dcc, html, Input, Output, State, ALL, MATCH, ctx, no_update
 import numpy as np
 import plotly.graph_objects as go
 
 # Importa a app principal
 from app import app
 # Importa as funções auxiliares
-from utils import create_phasor_diagram, get_tcc_time
+from utils import create_phasor_diagram, get_tcc_time, polar_to_complex, calculate_fault_currents
 
 
-# --- Callback 1: Atualizar Rótulos (Labels) ---
+# --- MÓDULO 1: Componentes Simétricos ---
+
+# --- Callback 1.1: Atualizar Rótulos (Labels) ---
 @app.callback(
     [Output('sym_label_in_1', 'children'),
      Output('sym_label_in_2', 'children'),
@@ -22,34 +24,28 @@ from utils import create_phasor_diagram, get_tcc_time
 )
 def update_sym_labels(direction):
     if direction == 'phase-to-sym':
-        # Rótulos de Entrada (Fases)
         in_1 = "Fase A Mag:"
         in_2 = "Fase B Mag:"
         in_3 = "Fase C Mag:"
-        # Rótulos de Saída (Sequências)
         out_1 = "Sequência Zero (V0): "
         out_2 = "Sequência Positiva (V1): "
         out_3 = "Sequência Negativa (V2): "
-        # Títulos dos Gráficos
         title_in = "Visualização de Fasores (Entrada: Fases)"
         title_out = "Visualização de Fasores (Saída: Simétricos)"
     else:  # sym-to-phase
-        # Rótulos de Entrada (Sequências)
         in_1 = "Seq. Zero (V0) Mag:"
         in_2 = "Seq. Positiva (V1) Mag:"
         in_3 = "Seq. Negativa (V2) Mag:"
-        # Rótulos de Saída (Fases)
         out_1 = "Fase A (Va): "
         out_2 = "Fase B (Vb): "
         out_3 = "Fase C (Vc): "
-        # Títulos dos Gráficos
         title_in = "Visualização de Fasores (Entrada: Simétricos)"
         title_out = "Visualização de Fasores (Saída: Fases)"
 
     return in_1, in_2, in_3, out_1, out_2, out_3, title_in, title_out
 
 
-# --- Callback 2: Cálculo Bi-direcional ---
+# --- Callback 1.2: Cálculo Bi-direcional ---
 @app.callback(
     [Output('sym_out_1', 'children'),
      Output('sym_out_2', 'children'),
@@ -66,11 +62,11 @@ def calcular_componentes_bidirecional(n_clicks, direction,
                                       mag1, ang1, mag2, ang2, mag3, ang3):
     fig_vazia = go.Figure(
         layout=go.Layout(template="plotly_dark", plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)'))
-    if n_clicks == 0:
+
+    if n_clicks is None or n_clicks == 0:
         return "Clique em 'Calcular'...", "", "", fig_vazia, fig_vazia
 
     try:
-        # --- A. Converter Inputs para Números Complexos ---
         m1 = float(mag1);
         a1 = float(ang1)
         m2 = float(mag2);
@@ -78,54 +74,35 @@ def calcular_componentes_bidirecional(n_clicks, direction,
         m3 = float(mag3);
         a3 = float(ang3)
 
-        # Função interna para converter (Mag, Ang) -> Complexo
-        def to_complex(mag, ang_deg):
-            rad = np.deg2rad(ang_deg)
-            return mag * (np.cos(rad) + 1j * np.sin(rad))
+        V_in_1 = polar_to_complex(m1, a1)
+        V_in_2 = polar_to_complex(m2, a2)
+        V_in_3 = polar_to_complex(m3, a3)
 
-        V_in_1 = to_complex(m1, a1)
-        V_in_2 = to_complex(m2, a2)
-        V_in_3 = to_complex(m3, a3)
-
-        # Operador 'a' (1 ângulo 120)
         a = np.exp(1j * 2 * np.pi / 3)
 
-        # --- B. Executar o Cálculo baseado na Direção ---
         if direction == 'phase-to-sym':
-            # Entradas são Fases (A, B, C)
-            V_a = V_in_1
-            V_b = V_in_2
+            V_a = V_in_1;
+            V_b = V_in_2;
             V_c = V_in_3
-
-            # Saídas são Sequências (0, 1, 2) - Fórmulas de Fortescue
             V_out_1 = (1 / 3) * (V_a + V_b + V_c)  # V0
             V_out_2 = (1 / 3) * (V_a + a * V_b + (a ** 2) * V_c)  # V1
             V_out_3 = (1 / 3) * (V_a + (a ** 2) * V_b + a * V_c)  # V2
-
-            # Nomes para os gráficos
             in_labels = {"A": V_a, "B": V_b, "C": V_c}
             in_colors = ["#ff0d57", "#00b200", "#009cff"]
             out_labels = {"0": V_out_1, "1": V_out_2, "2": V_out_3}
             out_colors = ["#888888", "#ff0d57", "#00b200"]
-
         else:  # direction == 'sym-to-phase'
-            # Entradas são Sequências (0, 1, 2)
-            V_0 = V_in_1
-            V_1 = V_in_2
+            V_0 = V_in_1;
+            V_1 = V_in_2;
             V_2 = V_in_3
-
-            # Saídas são Fases (A, B, C) - Fórmulas Inversas
             V_out_1 = V_0 + V_1 + V_2  # Va
             V_out_2 = V_0 + (a ** 2) * V_1 + a * V_2  # Vb
             V_out_3 = V_0 + a * V_1 + (a ** 2) * V_2  # Vc
-
-            # Nomes para os gráficos
             in_labels = {"0": V_0, "1": V_1, "2": V_2}
             in_colors = ["#888888", "#ff0d57", "#00b200"]
             out_labels = {"A": V_out_1, "B": V_out_2, "C": V_out_3}
             out_colors = ["#ff0d57", "#00b200", "#009cff"]
 
-        # --- C. Formatar Saídas como Texto ---
         def to_polar_str(complex_val):
             mag = np.abs(complex_val)
             ang = np.rad2deg(np.angle(complex_val))
@@ -135,8 +112,6 @@ def calcular_componentes_bidirecional(n_clicks, direction,
         out_2_str = to_polar_str(V_out_2)
         out_3_str = to_polar_str(V_out_3)
 
-        # --- D. Criar Gráficos ---
-        # Usamos a nossa função auxiliar do utils.py
         fig_in = create_phasor_diagram(in_labels, in_colors, "")
         fig_out = create_phasor_diagram(out_labels, out_colors, "")
 
@@ -146,140 +121,191 @@ def calcular_componentes_bidirecional(n_clicks, direction,
         return f"Erro: {e}", "", "", fig_vazia, fig_vazia
 
 
-# --- [FIM] NOVOS CALLBACKS DO MÓDULO 1 ---
+# --- MÓDULO 2: Proteção de Distância (DINÂMICO) ---
 
-# --- [INÍCIO] NOVO CALLBACK MÓDULO 2 ---
-# Callback para atualizar os rótulos dos inputs da Zona de Distância
+# --- Função Auxiliar: Criar o layout de uma nova zona ---
+def create_zone_controls(index):
+    return html.Div(
+        id=f'zone-control-{index}',
+        className='module-container',
+        style={'border': '1px solid #555', 'marginBottom': '10px'},
+        children=[
+            html.H4(f"Zona {index}", style={'border': 'none', 'display': 'inline-block'}),
+            html.Button(
+                "Remover",
+                id={'type': 'remove-zone', 'index': index},
+                n_clicks=0,
+                className='DashButton',
+                style={'backgroundColor': '#ff4d4d', 'float': 'right'}
+            ),
+            html.Br(),
+            html.Label("Tipo de Zona:"),
+            dcc.Dropdown(
+                id={'type': 'zone-type', 'index': index},
+                options=[
+                    {'label': 'Mho (Círculo)', 'value': 'mho'},
+                    {'label': 'Quadrilateral (Polígono)', 'value': 'quad'},
+                ],
+                value='mho',
+                clearable=False,
+                className='DashDropdown'
+            ),
+            html.Br(),
+            html.Label(id={'type': 'zone-label1', 'index': index}, children="Magnitude (Ω):"),
+            dcc.Input(id={'type': 'zone-in1', 'index': index}, value='8', type='number', className='DashInput'),
+            html.Label(id={'type': 'zone-label2', 'index': index}, children=" Ângulo (°):"),
+            dcc.Input(id={'type': 'zone-in2', 'index': index}, value='80', type='number', className='DashInput'),
+        ]
+    )
+
+
+# --- Callback 2.1: Adicionar Zona (MODIFICADO) ---
 @app.callback(
-    [Output('line1_z1_label1', 'children'),
-     Output('line1_z1_label2', 'children')],
-    [Input('line1_z1_type', 'value')]
+    Output('zone-storage', 'data'),
+    Input('btn_add_zone', 'n_clicks'),
+    State('zone-storage', 'data')
 )
-def update_zone1_labels(zone_type):
+def add_zone(n_clicks, existing_zones):
+    if n_clicks is None or n_clicks == 0:
+        return no_update
+
+    new_index = n_clicks
+
+    # --- [CORREÇÃO] ---
+    # Cria uma NOVA lista em vez de modificar a antiga
+    new_list = existing_zones.copy()
+
+    if new_index not in new_list:
+        new_list.append(new_index)
+
+    return new_list  # Retorna a nova lista
+    # --- [FIM DA CORREÇÃO] ---
+
+
+# --- Callback 2.2: Remover Zona (MODIFICADO) ---
+@app.callback(
+    Output('zone-storage', 'data', allow_duplicate=True),
+    Input({'type': 'remove-zone', 'index': ALL}, 'n_clicks'),
+    State('zone-storage', 'data'),
+    prevent_initial_call=True
+)
+def remove_zone(n_clicks_list, existing_zones):
+    button_id = ctx.triggered_id
+    if not button_id:
+        return no_update
+
+    index_to_remove = button_id['index']
+
+    # --- [CORREÇÃO] ---
+    # Cria uma NOVA lista excluindo o item a ser removido
+    new_list = [index for index in existing_zones if index != index_to_remove]
+
+    return new_list  # Retorna a nova lista
+    # --- [FIM DA CORREÇÃO] ---
+
+
+# --- Callback 2.3: Renderizar Zonas ---
+@app.callback(
+    Output('dynamic-zone-container', 'children'),
+    Output('btn_plot_zones', 'style'),
+    Output('bottom-hr', 'style'),
+    Input('zone-storage', 'data')
+)
+def render_zones_from_storage(zone_indices):
+    if not zone_indices:
+        return [], {'display': 'none'}, {'display': 'none'}
+
+    # Adiciona um estilo ao botão de plotar
+    plot_button_style = {
+        'display': 'inline-block',
+        'backgroundColor': '#00aaff',
+        'marginTop': '10px'
+    }
+
+    children = [create_zone_controls(index) for index in zone_indices]
+    return children, plot_button_style, {'display': 'block'}
+
+
+# --- Callback 2.4: Atualizar Rótulos (Labels) Dinamicamente ---
+@app.callback(
+    [Output({'type': 'zone-label1', 'index': MATCH}, 'children'),
+     Output({'type': 'zone-label2', 'index': MATCH}, 'children')],
+    [Input({'type': 'zone-type', 'index': MATCH}, 'value')]
+)
+def update_dynamic_zone_labels(zone_type):
     if zone_type == 'mho':
         return "Magnitude (Ω):", " Ângulo (°):"
     elif zone_type == 'quad':
-        # Para 'quad', vamos reinterpretar os inputs:
-        # Input 1 = Alcance de Reatância (X)
-        # Input 2 = Alcance de Resistência (R)
         return "Alcance X (Ω):", " Alcance R (Ω):"
+    return no_update, no_update
 
-@app.callback(
-    [Output('line1_z2_label1', 'children'),
-     Output('line1_z2_label2', 'children')],
-    [Input('line1_z2_type', 'value')]
-)
-def update_zone2_labels(zone_type):
-    if zone_type == 'mho':
-        return "Magnitude (Ω):", " Ângulo (°):"
-    elif zone_type == 'quad':
-        return "Alcance X (Ω):", " Alcance R (Ω):"
-# --- [FIM] NOVO CALLBACK MÓDULO 2 ---
 
-# --- [INÍCIO] CALLBACK DE PLOTAGEM MÓDULO 2 (MODIFICADO) ---
+# --- Callback 2.5: Plotar o Gráfico (Dinâmico) ---
 @app.callback(
     Output('distance-plot-graph', 'figure'),
     [Input('btn_plot_zones', 'n_clicks')],
     [State('line1_imp', 'value'), State('line1_ang', 'value'),
-     # Novos States para os tipos de zona
-     State('line1_z1_type', 'value'),
-     State('line1_z1_imp', 'value'), State('line1_z1_ang', 'value'),
-     State('line1_z2_type', 'value'),
-     State('line1_z2_imp', 'value'), State('line1_z2_ang', 'value')]
+     State({'type': 'zone-type', 'index': ALL}, 'value'),
+     State({'type': 'zone-in1', 'index': ALL}, 'value'),
+     State({'type': 'zone-in2', 'index': ALL}, 'value')]
 )
-def plotar_zonas_de_distancia(n_clicks, line_imp, line_ang,
-                              z1_type, z1_in1, z1_in2,
-                              z2_type, z2_in1, z2_in2):
+def plotar_zonas_dinamicas(n_clicks, line_imp, line_ang,
+                           zone_types, zone_in1s, zone_in2s):
     fig = go.Figure(
         layout=go.Layout(template="plotly_dark", plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)'))
-    if n_clicks == 0:
-        fig.update_layout(title="Clique em 'Plotar Zonas' para ver o gráfico R-X")
+
+    if n_clicks is None or n_clicks == 0:
+        fig.update_layout(title="Adicione zonas e clique em 'Plotar Zonas'")
         return fig
 
     try:
-        # --- A. Converter inputs da Linha ---
+        # --- Plotar a Linha ---
         l1_imp = float(line_imp);
         l1_ang_deg = float(line_ang)
+        Z_l1 = polar_to_complex(l1_imp, l1_ang_deg)
+        R_l1 = Z_l1.real
+        X_l1 = Z_l1.imag
 
-        # Função auxiliar para conversão
-        def polar_para_cart(mag, ang_deg):
-            rad = np.deg2rad(ang_deg);
-            R = mag * np.cos(rad);
-            X = mag * np.sin(rad);
-            return R, X
-
-        R_l1, X_l1 = polar_para_cart(l1_imp, l1_ang_deg)
-
-        # Adiciona a Linha de Impedância ao gráfico
         fig.add_trace(go.Scatter(
             x=[0, R_l1], y=[0, X_l1], mode='lines+markers',
             name=f'Linha 1: {l1_imp}Ω ∠{l1_ang_deg}°', line=dict(color='white', width=3)
         ))
 
-        # --- B. Processar e Plotar Zona 1 ---
-        z1_in1_val = float(z1_in1)
-        z1_in2_val = float(z1_in2)
+        # --- Loop para plotar cada zona dinâmica ---
+        for i, (zone_type, in1, in2) in enumerate(zip(zone_types, zone_in1s, zone_in2s)):
+            try:
+                val1 = float(in1)
+                val2 = float(in2)
 
-        if z1_type == 'mho':
-            # Inputs são Magnitude e Ângulo
-            R_z1, X_z1 = polar_para_cart(z1_in1_val, z1_in2_val)
-            center_x_z1 = R_z1 / 2;
-            center_y_z1 = X_z1 / 2;
-            radius_z1 = z1_in1_val / 2
+                color = "#009cff" if i % 3 == 0 else ("#ff0d57" if i % 3 == 1 else "#00cc00")
+                rgba_fill = "rgba(0, 156, 255, 0.1)" if i % 3 == 0 else (
+                    "rgba(255, 13, 87, 0.1)" if i % 3 == 1 else "rgba(0, 204, 0, 0.1)")
 
-            fig.add_shape(type="circle", xref="x", yref="y",
-                          x0=center_x_z1 - radius_z1, y0=center_y_z1 - radius_z1,
-                          x1=center_x_z1 + radius_z1, y1=center_y_z1 + radius_z1,
-                          line_color="#009cff", fillcolor="rgba(0, 156, 255, 0.1)", name="Zona 1"
-                          )
+                if zone_type == 'mho':
+                    Z_mho = polar_to_complex(val1, val2)
+                    R_z = Z_mho.real
+                    X_z = Z_mho.imag
+                    center_x = R_z / 2;
+                    center_y = X_z / 2;
+                    radius = val1 / 2
+                    fig.add_shape(type="circle", xref="x", yref="y",
+                                  x0=center_x - radius, y0=center_y - radius,
+                                  x1=center_x + radius, y1=center_y + radius,
+                                  line_color=color, fillcolor=rgba_fill, name=f"Zona {i + 1}"
+                                  )
+                elif zone_type == 'quad':
+                    X_reach = val1;
+                    R_reach = val2
+                    fig.add_trace(go.Scatter(
+                        x=[0, R_reach, R_reach, 0, 0],
+                        y=[0, 0, X_reach, X_reach, 0],
+                        fill="toself", fillcolor=rgba_fill, line_color=color,
+                        name=f"Zona {i + 1} (Quad)"
+                    ))
+            except Exception:
+                continue
 
-        elif z1_type == 'quad':
-            # Inputs são Alcance X e Alcance R
-            X_reach_z1 = z1_in1_val
-            R_reach_z1 = z1_in2_val
-            # (Vamos assumir uma zona quadrilateral simples por agora, não inclinada)
-            # Pontos do polígono: (0,0), (R_reach, 0), (R_reach, X_reach), (0, X_reach)
-            fig.add_trace(go.Scatter(
-                x=[0, R_reach_z1, R_reach_z1, 0, 0],  # Coordenadas X
-                y=[0, 0, X_reach_z1, X_reach_z1, 0],  # Coordenadas Y
-                fill="toself",
-                fillcolor="rgba(0, 156, 255, 0.1)",
-                line_color="#009cff",
-                name="Zona 1 (Quad)"
-            ))
-
-        # --- C. Processar e Plotar Zona 2 ---
-        z2_in1_val = float(z2_in1)
-        z2_in2_val = float(z2_in2)
-
-        if z2_type == 'mho':
-            # Inputs são Magnitude e Ângulo
-            R_z2, X_z2 = polar_para_cart(z2_in1_val, z2_in2_val)
-            center_x_z2 = R_z2 / 2;
-            center_y_z2 = X_z2 / 2;
-            radius_z2 = z2_in1_val / 2
-
-            fig.add_shape(type="circle", xref="x", yref="y",
-                          x0=center_x_z2 - radius_z2, y0=center_y_z2 - radius_z2,
-                          x1=center_x_z2 + radius_z2, y1=center_y_z2 + radius_z2,
-                          line_color="#ff0d57", fillcolor="rgba(255, 13, 87, 0.1)", name="Zona 2"
-                          )
-
-        elif z2_type == 'quad':
-            # Inputs são Alcance X e Alcance R
-            X_reach_z2 = z2_in1_val
-            R_reach_z2 = z2_in2_val
-
-            fig.add_trace(go.Scatter(
-                x=[0, R_reach_z2, R_reach_z2, 0, 0],
-                y=[0, 0, X_reach_z2, X_reach_z2, 0],
-                fill="toself",
-                fillcolor="rgba(255, 13, 87, 0.1)",
-                line_color="#ff0d57",
-                name="Zona 2 (Quad)"
-            ))
-
-        # --- D. Configurar o Layout do Gráfico R-X ---
+                # --- Configurar Layout ---
         fig.update_layout(
             title="Diagrama R-X de Proteção de Distância",
             xaxis_title="Resistência (R) Ω", yaxis_title="Reatância (X) Ω",
@@ -287,10 +313,6 @@ def plotar_zonas_de_distancia(n_clicks, line_imp, line_ang,
             yaxis=dict(scaleanchor="x", scaleratio=1, gridcolor='rgba(255, 255, 255, 0.3)'),
             showlegend=False
         )
-
-        # (Lógica de zoom pode precisar de ajustes, mas vamos manter simples por agora)
-        # fig.update_xaxes(range=[...])
-        # fig.update_yaxes(range=[...])
         return fig
 
     except Exception as e:
@@ -298,10 +320,7 @@ def plotar_zonas_de_distancia(n_clicks, line_imp, line_ang,
         return fig
 
 
-# --- [FIM] CALLBACK DE PLOTAGEM MÓDULO 2 (MODIFICADO) ---
-
-
-# --- Callback MÓDULO 3: Curvas TCC ---
+# --- MÓDULO 3: Curvas TCC ---
 @app.callback(
     [Output('tcc-graph', 'figure'),
      Output('tcc-cti-output', 'children')],
@@ -325,7 +344,8 @@ def plotar_curvas_tcc(n_clicks, r1_type, r1_pickup, r1_tds, r2_type, r2_pickup, 
         yaxis_title="Tempo (s)"
     ))
     cti_text = "Clique em 'Plotar' para calcular o CTI."
-    if n_clicks == 0:
+
+    if n_clicks is None or n_clicks == 0:
         return fig, cti_text
 
     try:
@@ -344,11 +364,11 @@ def plotar_curvas_tcc(n_clicks, r1_type, r1_pickup, r1_tds, r2_type, r2_pickup, 
 
         fig.add_trace(go.Scatter(
             x=currents, y=times_r1, mode='lines',
-            name=f"Relé 1 ({r1_type})", line=dict(color='#ff9900')  # Laranja
+            name=f"Relé 1 ({r1_type})", line=dict(color='#ff9900')
         ))
         fig.add_trace(go.Scatter(
             x=currents, y=times_r2, mode='lines',
-            name=f"Relé 2 ({r2_type})", line=dict(color='#00cc00')  # Verde
+            name=f"Relé 2 ({r2_type})", line=dict(color='#00cc00')
         ))
 
         t1_fault = get_tcc_time(i_fault, p1, td1, r1_type)
@@ -356,7 +376,6 @@ def plotar_curvas_tcc(n_clicks, r1_type, r1_pickup, r1_tds, r2_type, r2_pickup, 
 
         if t1_fault != np.inf and t2_fault != np.inf:
             cti = t1_fault - t2_fault
-
             fig.add_shape(type="line",
                           x0=i_fault, y0=0.01, x1=i_fault, y1=max(t1_fault, t2_fault) * 1.5,
                           line=dict(color="white", width=1, dash="dot")
@@ -383,3 +402,41 @@ def plotar_curvas_tcc(n_clicks, r1_type, r1_pickup, r1_tds, r2_type, r2_pickup, 
         return fig, cti_text
     except Exception as e:
         return fig, f"Erro ao plotar TCC: {e}"
+
+
+# --- MÓDULO 4: Cálculo de Faltas ---
+@app.callback(
+    [Output('out_fault_3ph', 'children'),
+     Output('out_fault_lg', 'children'),
+     Output('out_fault_ll', 'children')],
+    [Input('btn_calc_fault', 'n_clicks')],
+    [State('fault_v_mag', 'value'), State('fault_v_ang', 'value'),
+     State('fault_z1_mag', 'value'), State('fault_z1_ang', 'value'),
+     State('fault_z2_mag', 'value'), State('fault_z2_ang', 'value'),
+     State('fault_z0_mag', 'value'), State('fault_z0_ang', 'value')]
+)
+def handle_fault_calculation(n_clicks,
+                             v_mag, v_ang,
+                             z1_mag, z1_ang,
+                             z2_mag, z2_ang,
+                             z0_mag, z0_ang):
+    if n_clicks is None or n_clicks == 0:
+        return "Clique em 'Calcular'", "Clique em 'Calcular'", "Clique em 'Calcular'"
+
+    try:
+        V_pu = polar_to_complex(v_mag, v_ang)
+        Z1 = polar_to_complex(z1_mag, z1_ang)
+        Z2 = polar_to_complex(z2_mag, z2_ang)
+        Z0 = polar_to_complex(z0_mag, z0_ang)
+
+        results = calculate_fault_currents(V_pu, Z1, Z2, Z0)
+
+        out_3ph = f"{results['3ph']:.3f} p.u."
+        out_lg = f"{results['lg']:.3f} p.u."
+        out_ll = f"{results['ll']:.3f} p.u."
+
+        return out_3ph, out_lg, out_ll
+
+    except Exception as e:
+        error_msg = f"Erro: {e}"
+        return error_msg, error_msg, error_msg

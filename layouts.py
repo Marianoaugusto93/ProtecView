@@ -88,6 +88,12 @@ layout_sym = html.Div(className='module-container', children=[
 
 # --- [INÍCIO] Layout da Aba 3: Proteção de Distância (MODIFICADO) ---
 layout_dist = html.Div(className='module-container', children=[
+
+    # --- Componentes "Invisíveis" ---
+    # 1. Armazena os IDs das zonas (ex: [1, 2, 3])
+    #dcc.Store(id='zone-storage', data=[]),
+
+    # --- Interface Visível ---
     html.H2(children='Visualizador de Zonas de Proteção de Distância'),
 
     html.H4("Linha 1"),
@@ -97,50 +103,17 @@ layout_dist = html.Div(className='module-container', children=[
     dcc.Input(id='line1_ang', value='80', type='number', className='DashInput'),
     html.Br(), html.Br(),
 
-    # --- Zona 1 (Modificada) ---
-    html.H4("Zona 1"),
-    html.Label("Tipo de Zona:"),
-    dcc.Dropdown(
-        id='line1_z1_type',
-        options=[
-            {'label': 'Mho (Círculo)', 'value': 'mho'},
-            {'label': 'Quadrilateral (Polígono)', 'value': 'quad'},
-        ],
-        value='mho',  # Padrão
-        clearable=False,
-        className='DashDropdown'
-    ),
-    html.Br(),
-    # Rótulos (labels) agora têm IDs
-    html.Label(id='line1_z1_label1', children="Magnitude (Ω):"),
-    dcc.Input(id='line1_z1_imp', value='8', type='number', className='DashInput'),
-    html.Label(id='line1_z1_label2', children=" Ângulo (°):"),
-    dcc.Input(id='line1_z1_ang', value='80', type='number', className='DashInput'),
-    html.Br(), html.Br(),
-
-    # --- Zona 2 (Modificada) ---
-    html.H4("Zona 2"),
-    html.Label("Tipo de Zona:"),
-    dcc.Dropdown(
-        id='line1_z2_type',
-        options=[
-            {'label': 'Mho (Círculo)', 'value': 'mho'},
-            {'label': 'Quadrilateral (Polígono)', 'value': 'quad'},
-        ],
-        value='mho',  # Padrão
-        clearable=False,
-        className='DashDropdown'
-    ),
-    html.Br(),
-    # Rótulos (labels) agora têm IDs
-    html.Label(id='line1_z2_label1', children="Magnitude (Ω):"),
-    dcc.Input(id='line1_z2_imp', value='12', type='number', className='DashInput'),
-    html.Label(id='line1_z2_label2', children=" Ângulo (°):"),
-    dcc.Input(id='line1_z2_ang', value='80', type='number', className='DashInput'),
-    html.Br(), html.Br(),
-
-    html.Button('Plotar Zonas', id='btn_plot_zones', n_clicks=0, className='DashButton'),
+    html.Button('Adicionar Zona', id='btn_add_zone', n_clicks=0, className='DashButton'),
     html.Hr(),
+
+    # 2. Container onde as zonas dinâmicas irão aparecer
+    html.Div(id='dynamic-zone-container', children=[]),
+
+    html.Hr(id='bottom-hr', style={'display': 'none'}),  # Linha oculta, aparece quando há zonas
+
+    html.Button('Plotar Zonas', id='btn_plot_zones', n_clicks=0, className='DashButton', style={'display': 'none'}),
+    # Botão oculto
+
     dcc.Graph(id='distance-plot-graph')
 ])
 # --- [FIM] Layout da Aba 3: Proteção de Distância (MODIFICADO) ---
@@ -211,3 +184,55 @@ layout_tcc = html.Div(className='module-container', children=[
 
 ])
 # --- [FIM] Layout da Aba 4: Curvas TCC (MODIFICADO) ---
+
+# --- [INÍCIO] NOVO Layout da Aba 4: Cálculo de Faltas ---
+layout_fault_calc = html.Div(className='module-container', children=[
+    html.H2(children='Calculadora de Curto-Circuito (Assimétrico)'),
+    html.P(
+        "Insira os valores das impedâncias de sequência e a tensão pré-falta no ponto da falta. Os valores são assumidos em p.u. (por unidade)."),
+
+    # --- Entradas (Inputs) ---
+    html.H4("Entradas (p.u.)"),
+
+    html.Label("V Pré-Falta Mag (p.u.):"),
+    dcc.Input(id='fault_v_mag', value='1.0', type='number', className='DashInput'),
+    html.Label(" Âng (°):"),
+    dcc.Input(id='fault_v_ang', value='0', type='number', className='DashInput', style={'width': 70}),
+    html.Br(),
+
+    html.Label("Z1 (Positiva) Mag (p.u.):"),
+    dcc.Input(id='fault_z1_mag', value='0.2', type='number', className='DashInput'),
+    html.Label(" Âng (°):"),
+    dcc.Input(id='fault_z1_ang', value='85', type='number', className='DashInput', style={'width': 70}),
+    html.Br(),
+
+    html.Label("Z2 (Negativa) Mag (p.u.):"),
+    dcc.Input(id='fault_z2_mag', value='0.2', type='number', className='DashInput'),
+    html.Label(" Âng (°):"),
+    dcc.Input(id='fault_z2_ang', value='85', type='number', className='DashInput', style={'width': 70}),
+    html.Br(),
+
+    html.Label("Z0 (Zero) Mag (p.u.):"),
+    dcc.Input(id='fault_z0_mag', value='0.3', type='number', className='DashInput'),
+    html.Label(" Âng (°):"),
+    dcc.Input(id='fault_z0_ang', value='85', type='number', className='DashInput', style={'width': 70}),
+    html.Br(), html.Br(),
+
+    html.Button('Calcular Faltas', id='btn_calc_fault', n_clicks=0, className='DashButton'),
+    html.Hr(),
+
+    # --- Saídas (Outputs) ---
+    html.H4("Resultados da Corrente de Falta (p.u.)"),
+
+    html.Label("Corrente Trifásica (3PH): "),
+    html.Div(id='out_fault_3ph', style={'display': 'inline-block', 'fontWeight': 'bold'}),
+    html.Br(),
+
+    html.Label("Corrente Fase-Terra (LG): "),
+    html.Div(id='out_fault_lg', style={'display': 'inline-block', 'fontWeight': 'bold'}),
+    html.Br(),
+
+    html.Label("Corrente Fase-Fase (LL): "),
+    html.Div(id='out_fault_ll', style={'display': 'inline-block', 'fontWeight': 'bold'}),
+])
+# --- [FIM] NOVO Layout da Aba 4 ---

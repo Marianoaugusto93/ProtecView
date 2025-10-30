@@ -99,3 +99,63 @@ def get_tcc_time(current, pickup, tds, curve_type):
     except Exception:
         return np.inf
 # --- [FIM] Função de TCC (MODIFICADA) ---
+
+# --- [INÍCIO] NOVAS FUNÇÕES DO MÓDULO 4 ---
+
+def polar_to_complex(mag, ang_deg):
+    """
+    Converte uma magnitude e um ângulo (em graus) para um número complexo.
+    """
+    try:
+        rad = np.deg2rad(float(ang_deg))
+        return float(mag) * (np.cos(rad) + 1j * np.sin(rad))
+    except Exception:
+        return 0j
+
+
+def calculate_fault_currents(v_prefault, z1, z2, z0):
+    """
+    Calcula as correntes de falta (magnitudes) em p.u.
+    Assume que V_prefault, Z1, Z2, e Z0 são números complexos.
+    Retorna um dicionário com os resultados.
+    """
+    results = {
+        '3ph': 0.0,
+        'lg': 0.0,
+        'll': 0.0
+    }
+
+    # Evita divisão por zero
+    # (Adicionamos um número muito pequeno, 'epsilon', para estabilidade numérica)
+    epsilon = 1e-9
+
+    # --- 1. Falta Trifásica (3PH) ---
+    # I_3ph = V / Z1
+    try:
+        i_3ph = v_prefault / (z1 + epsilon)
+        results['3ph'] = np.abs(i_3ph)
+    except Exception:
+        pass  # Mantém 0.0
+
+    # --- 2. Falta Fase-Terra (LG) ---
+    # I_lg = 3 * V / (Z1 + Z2 + Z0)
+    try:
+        z_total_lg = z1 + z2 + z0
+        i_lg = (3 * v_prefault) / (z_total_lg + epsilon)
+        results['lg'] = np.abs(i_lg)
+    except Exception:
+        pass  # Mantém 0.0
+
+    # --- 3. Falta Fase-Fase (LL) ---
+    # I1 = V / (Z1 + Z2)
+    # I_fault (fase B ou C) = I1 * sqrt(3)
+    try:
+        z_total_ll = z1 + z2
+        i_1 = v_prefault / (z_total_ll + epsilon)
+        i_ll = i_1 * (np.sqrt(3))  # Magnitude (simplificado)
+        results['ll'] = np.abs(i_ll)
+    except Exception:
+        pass  # Mantém 0.0
+
+    return results
+# --- [FIM] NOVAS FUNÇÕES DO MÓDULO 4 ---

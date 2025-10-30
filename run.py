@@ -5,26 +5,26 @@ from app import app
 
 server = app.server
 # Importa as variáveis de layout do layouts.py
-from layouts import layout_home, layout_sym, layout_dist, layout_tcc
+from layouts import layout_home, layout_sym, layout_dist, layout_tcc, layout_fault_calc
 # Importa os callbacks
 import callbacks
 
-# --- [CORREÇÃO] Definir Estilos das Abas com o métod 'colors' ---
-# Esta é a forma correta de estilizar abas no dash==3.2.0
+# --- Definir Estilos das Abas com o metodo 'colors' ---
 TAB_COLORS = {
     "background": "#2a2a2a",  # Cor de fundo da aba NÃO selecionada
     "primary": "#00aaff",  # Cor do texto da aba SELECIONADA
     "border": "#4a4a4a"  # Cor da borda inferior
 }
-# --- [FIM DA CORREÇÃO] ---
 
-
-# --- 2. Definir o Layout da Aplicação ---
+# --- 2. Definir o Layout da Aplicação (VERSÃO ÚNICA E CORRIGIDA) ---
 app.layout = html.Div(children=[
+
+    # Armazenamento de estado global (deve estar no layout principal)
+    dcc.Store(id='zone-storage', data=[]),
 
     html.H1(children='ProtecView: Ferramentas de Análise de Sistemas Elétricos'),
 
-    # --- Container Principal de Abas (MODIFICADO) ---
+    # --- Container Principal de Abas ---
     dcc.Tabs(id="main-tabs", children=[
 
         # --- Aba 1: Home ---
@@ -42,17 +42,18 @@ app.layout = html.Div(children=[
             layout_dist  # Usa a variável importada
         ], value='tab-dist'),
 
-        # --- Aba 4: Curvas TCC ---
+        # --- Aba 4: Cálculo de Faltas ---
+        dcc.Tab(label='Cálculo de Faltas', children=[
+            layout_fault_calc  # <-- USA A VARIÁVEL IMPORTADA
+        ], value='tab-fault'),
+
+        # --- Aba 5: Curvas TCC ---
         dcc.Tab(label='Curvas TCC', children=[
             layout_tcc  # Usa a variável importada
         ], value='tab-tcc'),
 
     ],
              value='tab-home',
-
-             # --- [ALTERAÇÃO CRÍTICA] ---
-             # Removemos os argumentos 'tab_style' e 'selected_tab_style'
-             # E adicionamos o argumento 'colors'
              colors=TAB_COLORS
              ),
 
