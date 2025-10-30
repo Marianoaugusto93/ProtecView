@@ -145,3 +145,52 @@ label {
     margin-top: 0;
     border-radius: 0 0 8px 8px;
 }
+
+/* Estilo para os Dropdowns */
+.DashDropdown .Select-control {
+    background-color: #343a40; /* Fundo mais escuro para o controle padrão */
+    border: 1px solid #4a545e; /* Borda visível */
+    color: #e0e0e0; /* Texto claro */
+}
+
+.DashDropdown .Select-value-label {
+    color: #e0e0e0 !important; /* Texto do valor selecionado */
+}
+
+.DashDropdown .Select--single > .Select-control .Select-value {
+    padding-right: 25px; /* Espaço para a seta */
+}
+
+/* Estilo para o menu suspenso (quando o dropdown está aberto) */
+.DashDropdown .Select-menu-outer {
+    background-color: #2c2f33; /* Fundo do menu ligeiramente mais claro que o controle ou do fundo geral */
+    border: 1px solid #4a545e;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Estilo para cada opção no menu */
+.DashDropdown .Select-option {
+    background-color: #2c2f33; /* Fundo da opção normal */
+    color: #e0e0e0; /* Texto da opção normal */
+    padding: 10px;
+}
+
+/* Estilo quando o rato passa por cima de uma opção (hover) */
+.DashDropdown .Select-option.is-focused {
+    background-color: #007bff; /* Azul claro para o hover */
+    color: white; /* Texto branco no hover */
+}
+
+/* Estilo quando uma opção é selecionada */
+.DashDropdown .Select-option.is-selected {
+    background-color: #0056b3; /* Azul mais escuro para a opção selecionada */
+    color: white; /* Texto branco na selecionada */
+}
+
+/* Estilo para a seta do dropdown */
+.DashDropdown .Select-arrow {
+    border-color: #e0e0e0 transparent transparent; /* Seta clara */
+}
+.DashDropdown.is-open .Select-arrow {
+    border-color: transparent transparent #e0e0e0; /* Seta para cima */
+}
