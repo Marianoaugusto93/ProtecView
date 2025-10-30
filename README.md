@@ -47,7 +47,7 @@ Para executar este projeto na sua própria máquina, siga estes passos:
 
 1.  **Clone o repositório:**
     ```bash
-    git clone [https://github.com/SEU_UTILIZADOR/ProtecView.git](https://github.com/SEU_UTILIZADOR/ProtecView.git)
+    git clone [https://github.com/marianoaugusto93/ProtecView.git](https://github.com/marianoaugusto93/ProtecView.git)
     cd ProtecView
     ```
 

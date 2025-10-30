@@ -60,4 +60,4 @@ app.layout = html.Div(children=[
 
 # --- 4. Executar o Servidor (PARA DESENVOLVIMENTO LOCAL) ---
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)

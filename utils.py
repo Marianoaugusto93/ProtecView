@@ -46,18 +46,56 @@ def create_phasor_diagram(phasors, colors, title):
 
 # --- Função Auxiliar Módulo 3: Cálculo de Tempo TCC ---
 def get_tcc_time(current, pickup, tds, curve_type):
+    """
+    Calcula o tempo de operação de um relé usando fórmulas IEC ou IEEE.
+    """
     try:
-        M = current / pickup
-        if M <= 1: return np.inf
+        M = current / pickup  # Múltiplo da corrente de pickup
+
+        if M <= 1:  # Se a corrente for menor que o pickup, o relé não atua
+            return np.inf  # Retorna "infinito"
+
+        # Constantes k, alpha, B para as curvas
+        # Fórmula: t = TDS * [ (k / (M^alpha - 1)) + B ]
+
+        # --- Curvas IEC ---
         if curve_type == 'IEC Standard Inverse':
-            k, alpha = 0.14, 0.02
+            k = 0.14
+            alpha = 0.02
+            B = 0
         elif curve_type == 'IEC Very Inverse':
-            k, alpha = 13.5, 1.0
+            k = 13.5
+            alpha = 1.0
+            B = 0
         elif curve_type == 'IEC Extremely Inverse':
-            k, alpha = 80.0, 2.0
-        else:
-            k, alpha = 0.14, 0.02
-        time = tds * (k / (M ** alpha - 1))
+            k = 80.0
+            alpha = 2.0
+            B = 0
+
+        # --- NOVAS Curvas IEEE C37.112 ---
+        elif curve_type == 'IEEE Moderately Inverse':
+            k = 0.0515
+            alpha = 0.02
+            B = 0.114
+        elif curve_type == 'IEEE Very Inverse':
+            k = 19.61
+            alpha = 2.0
+            B = 0.491
+        elif curve_type == 'IEEE Extremely Inverse':
+            k = 28.2
+            alpha = 2.0
+            B = 0.1217
+
+        else:  # Default para IEC Standard Inverse (caso seguro)
+            k = 0.14
+            alpha = 0.02
+            B = 0
+
+        # Fórmula genérica: t = TDS * [ (k / (M^alpha - 1)) + B ]
+        time = tds * ((k / (M ** alpha - 1)) + B)
+
         return time
+
     except Exception:
         return np.inf
+# --- [FIM] Função de TCC (MODIFICADA) ---
