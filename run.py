@@ -39,8 +39,8 @@ app.layout = html.Div(children=[
     ],
              className="Tabs",
              value='tab-home',
-             tab_className="Tab",  # <-- ADICIONA ESTA LINHA
-             selected_tab_className="Tab--selected"  # <-- ADICIONA ESTA LINHA
+             #tab_className="Tab",  # <-- ADICIONA ESTA LINHA
+             #selected_tab_className="Tab--selected"  # <-- ADICIONA ESTA LINHA
              ),
 
 ])
