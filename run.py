@@ -1,3 +1,6 @@
+# Ficheiro: run.py
+# (Revertido para remover o dcc.Store)
+
 from dash import dcc, html
 
 # Importa a app principal do app.py
@@ -9,18 +12,17 @@ from layouts import layout_home, layout_sym, layout_dist, layout_tcc, layout_fau
 # Importa os callbacks
 import callbacks
 
-# --- Definir Estilos das Abas com o metodo 'colors' ---
+# --- Definir Estilos das Abas com o método 'colors' ---
 TAB_COLORS = {
     "background": "#2a2a2a",  # Cor de fundo da aba NÃO selecionada
     "primary": "#00aaff",  # Cor do texto da aba SELECIONADA
     "border": "#4a4a4a"  # Cor da borda inferior
 }
 
-# --- 2. Definir o Layout da Aplicação (VERSÃO ÚNICA E CORRIGIDA) ---
+# --- 2. Definir o Layout da Aplicação ---
 app.layout = html.Div(children=[
 
-    # Armazenamento de estado global (deve estar no layout principal)
-    dcc.Store(id='zone-storage', data=[]),
+    # O dcc.Store(id='zone-storage') foi REMOVIDO
 
     html.H1(children='ProtecView: Ferramentas de Análise de Sistemas Elétricos'),
 

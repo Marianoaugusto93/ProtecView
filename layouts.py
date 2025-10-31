@@ -86,14 +86,8 @@ layout_sym = html.Div(className='module-container', children=[
 ])
 # --- [FIM] Layout da Aba 2: Componentes Simétricos (MODIFICADO) ---
 
-# --- [INÍCIO] Layout da Aba 3: Proteção de Distância (MODIFICADO) ---
+# --- [INÍCIO] Layout da Aba 3: Proteção de Distância (Revertido para Estático) ---
 layout_dist = html.Div(className='module-container', children=[
-
-    # --- Componentes "Invisíveis" ---
-    # 1. Armazena os IDs das zonas (ex: [1, 2, 3])
-    #dcc.Store(id='zone-storage', data=[]),
-
-    # --- Interface Visível ---
     html.H2(children='Visualizador de Zonas de Proteção de Distância'),
 
     html.H4("Linha 1"),
@@ -103,21 +97,51 @@ layout_dist = html.Div(className='module-container', children=[
     dcc.Input(id='line1_ang', value='80', type='number', className='DashInput'),
     html.Br(), html.Br(),
 
-    html.Button('Adicionar Zona', id='btn_add_zone', n_clicks=0, className='DashButton'),
+    # --- Zona 1 (Fixa) ---
+    html.H4("Zona 1"),
+    html.Label("Tipo de Zona:"),
+    dcc.Dropdown(
+        id='line1_z1_type',
+        options=[
+            {'label': 'Mho (Círculo)', 'value': 'mho'},
+            {'label': 'Quadrilateral (Polígono)', 'value': 'quad'},
+        ],
+        value='mho',  # Padrão
+        clearable=False,
+        className='DashDropdown'
+    ),
+    html.Br(),
+    html.Label(id='line1_z1_label1', children="Magnitude (Ω):"),
+    dcc.Input(id='line1_z1_imp', value='8', type='number', className='DashInput'),
+    html.Label(id='line1_z1_label2', children=" Ângulo (°):"),
+    dcc.Input(id='line1_z1_ang', value='80', type='number', className='DashInput'),
+    html.Br(), html.Br(),
+
+    # --- Zona 2 (Fixa) ---
+    html.H4("Zona 2"),
+    html.Label("Tipo de Zona:"),
+    dcc.Dropdown(
+        id='line1_z2_type',
+        options=[
+            {'label': 'Mho (Círculo)', 'value': 'mho'},
+            {'label': 'Quadrilateral (Polígono)', 'value': 'quad'},
+        ],
+        value='mho',  # Padrão
+        clearable=False,
+        className='DashDropdown'
+    ),
+    html.Br(),
+    html.Label(id='line1_z2_label1', children="Magnitude (Ω):"),
+    dcc.Input(id='line1_z2_imp', value='12', type='number', className='DashInput'),
+    html.Label(id='line1_z2_label2', children=" Ângulo (°):"),
+    dcc.Input(id='line1_z2_ang', value='80', type='number', className='DashInput'),
+    html.Br(), html.Br(),
+
+    html.Button('Plotar Zonas', id='btn_plot_zones', n_clicks=0, className='DashButton'),
     html.Hr(),
-
-    # 2. Container onde as zonas dinâmicas irão aparecer
-    html.Div(id='dynamic-zone-container', children=[]),
-
-    html.Hr(id='bottom-hr', style={'display': 'none'}),  # Linha oculta, aparece quando há zonas
-
-    html.Button('Plotar Zonas', id='btn_plot_zones', n_clicks=0, className='DashButton', style={'display': 'none'}),
-    # Botão oculto
-
     dcc.Graph(id='distance-plot-graph')
 ])
-# --- [FIM] Layout da Aba 3: Proteção de Distância (MODIFICADO) ---
-
+# --- [FIM] Layout da Aba 3: Proteção de Distância (Revertido para Estático) ---
 
 # --- Layout da Aba 4: Curvas TCC ---
 # --- [INÍCIO] Layout da Aba 4: Curvas TCC (MODIFICADO) ---
