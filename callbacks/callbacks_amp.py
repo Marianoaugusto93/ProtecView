@@ -4,11 +4,10 @@
 from dash import Input, Output, State, html
 from app import app
 # Importa TODAS as funções de utils que vamos usar
-from utils import (
+from utils.utils_ampacity import (
     get_temp_correction_factor, get_grouping_correction_factor, calculate_ampacity,
     calculate_voltage_drop, check_short_circuit_withstand
 )
-
 
 # --- MÓDULO 9: Dimensionamento Completo de Cabos ---
 @app.callback(

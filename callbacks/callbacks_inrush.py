@@ -1,7 +1,7 @@
 # Ficheiro: callbacks/callbacks_inrush.py
 from dash import Input, Output, State
 from app import app
-from utils import calculate_inrush  # Importa a nossa nova função
+from utils.utils_inrush import calculate_inrush  # Importa a nossa nova função
 
 
 # --- MÓDULO 8: Cálculo de Inrush ---

@@ -2,7 +2,7 @@
 from dash import Input, Output, State, no_update
 import plotly.graph_objects as go
 from app import app
-from utils import polar_to_complex
+from utils.utils_common import polar_to_complex
 
 # --- MÓDULO 2: Proteção de Distância (ESTÁTICO - Revertido) ---
 

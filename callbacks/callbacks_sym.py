@@ -3,8 +3,9 @@ from dash import Input, Output, State, no_update
 import numpy as np
 import plotly.graph_objects as go
 from app import app
-from utils import create_phasor_diagram, polar_to_complex
 
+from utils.utils_sym import create_phasor_diagram
+from utils.utils_common import polar_to_complex
 # --- MÓDULO 1: Componentes Simétricos ---
 
 # --- Callback 1.1: Atualizar Rótulos (Labels) ---

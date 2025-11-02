@@ -2,7 +2,7 @@
 from dash import Input, Output, State, html
 import plotly.graph_objects as go
 from app import app
-from utils import check_ct_saturation
+from utils.utils_ct import check_ct_saturation
 
 
 # --- MÓDULO 6: Saturação de TC ---
@@ -39,7 +39,7 @@ def handle_ct_saturation_calc(n_clicks, if_primary, ct_ratio_num, vk_actual_str,
     try:
         vk_actual = float(vk_actual_str)  # Converte para float
 
-        # --- 1. Chamar a função de cálculo (do utils.py) ---
+
         results = check_ct_saturation(if_primary, ct_ratio_num, vk_actual, r_ct, r_b, xr_ratio)
 
         # --- 2. Formatar Saídas ---

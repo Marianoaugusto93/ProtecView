@@ -4,7 +4,7 @@
 from dash import Input, Output, State
 import plotly.graph_objects as go
 from app import app
-from utils import generate_differential_curve  # Importa a nossa função do utils.py
+from utils.utils_diff import generate_differential_curve
 import numpy as np
 
 

@@ -5,7 +5,7 @@ from dash import Input, Output, State
 import numpy as np
 import plotly.graph_objects as go
 from app import app
-from utils import get_tcc_time, generate_motor_curves  # <-- ADICIONA A NOVA FUNÇÃO
+from utils.utils_tcc import get_tcc_time, generate_motor_curves  # <-- ADICIONA A NOVA FUNÇÃO
 
 
 # --- MÓDULO 3: Curvas TCC ---

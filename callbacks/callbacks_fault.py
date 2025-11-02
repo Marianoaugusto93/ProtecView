@@ -1,7 +1,8 @@
 # Ficheiro: callbacks/callbacks_fault.py
 from dash import Input, Output, State
 from app import app
-from utils import polar_to_complex, calculate_fault_currents
+from utils.utils_common import polar_to_complex
+from utils.utils_fault import calculate_fault_currents
 
 # --- MÓDULO 4: Cálculo de Faltas ---
 @app.callback(
