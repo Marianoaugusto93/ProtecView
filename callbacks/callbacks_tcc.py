@@ -1,0 +1,89 @@
+# Ficheiro: callbacks/callbacks_tcc.py
+from dash import Input, Output, State
+import numpy as np
+import plotly.graph_objects as go
+from app import app
+from utils import get_tcc_time
+
+# --- MÓDULO 3: Curvas TCC ---
+@app.callback(
+    [Output('tcc-graph', 'figure'),
+     Output('tcc-cti-output', 'children')],
+    [Input('btn_plot_tcc', 'n_clicks')],
+    [State('tcc_r1_type', 'value'),
+     State('tcc_r1_pickup', 'value'),
+     State('tcc_r1_tds', 'value'),
+     State('tcc_r2_type', 'value'),
+     State('tcc_r2_pickup', 'value'),
+     State('tcc_r2_tds', 'value'),
+     State('tcc_fault_current', 'value')]
+)
+def plotar_curvas_tcc(n_clicks, r1_type, r1_pickup, r1_tds, r2_type, r2_pickup, r2_tds, fault_current):
+    fig = go.Figure(layout=go.Layout(
+        template="plotly_dark",
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        xaxis_type="log", yaxis_type="log",
+        title="Curvas TCC de Sobrecorrente",
+        xaxis_title="Corrente (A)",
+        yaxis_title="Tempo (s)"
+    ))
+    cti_text = "Clique em 'Plotar' para calcular o CTI."
+
+    if n_clicks is None or n_clicks == 0:
+        return fig, cti_text
+
+    try:
+        p1 = float(r1_pickup);
+        td1 = float(r1_tds)
+        p2 = float(r2_pickup);
+        td2 = float(r2_tds)
+        i_fault = float(fault_current)
+
+        min_pickup = min(p1, p2);
+        max_pickup = max(p1, p2)
+        currents = np.logspace(np.log10(min_pickup * 1.05), np.log10(max_pickup * 100), num=200)
+
+        times_r1 = [get_tcc_time(c, p1, td1, r1_type) for c in currents]
+        times_r2 = [get_tcc_time(c, p2, td2, r2_type) for c in currents]
+
+        fig.add_trace(go.Scatter(
+            x=currents, y=times_r1, mode='lines',
+            name=f"Relé 1 ({r1_type})", line=dict(color='#ff9900')
+        ))
+        fig.add_trace(go.Scatter(
+            x=currents, y=times_r2, mode='lines',
+            name=f"Relé 2 ({r2_type})", line=dict(color='#00cc00')
+        ))
+
+        t1_fault = get_tcc_time(i_fault, p1, td1, r1_type)
+        t2_fault = get_tcc_time(i_fault, p2, td2, r2_type)
+
+        if t1_fault != np.inf and t2_fault != np.inf:
+            cti = t1_fault - t2_fault
+            fig.add_shape(type="line",
+                          x0=i_fault, y0=0.01, x1=i_fault, y1=max(t1_fault, t2_fault) * 1.5,
+                          line=dict(color="white", width=1, dash="dot")
+                          )
+            fig.add_trace(go.Scatter(
+                x=[i_fault, i_fault], y=[t1_fault, t2_fault],
+                mode='markers+text',
+                marker=dict(color=['#ff9900', '#00cc00'], size=10),
+                text=[f"R1: {t1_fault:.3f}s", f"R2: {t2_fault:.3f}s"],
+                textposition="top right",
+                name="Pontos de Operação",
+                textfont=dict(color='#ffffff')
+            ))
+            cti_text = f"CTI em {i_fault}A: {cti:.3f} s (R1: {t1_fault:.3f}s | R2: {t2_fault:.3f}s)"
+        else:
+            cti_text = f"Corrente de falta {i_fault}A é menor que o pickup de um dos relés. Sem coordenação."
+
+        valid_times = [t for t in times_r1 + times_r2 if t != np.inf]
+        max_time = max(valid_times) if valid_times else 100
+
+        fig.update_xaxes(range=[np.log10(min_pickup * 0.9), np.log10(max_pickup * 110)])
+        fig.update_yaxes(range=[np.log10(0.01), np.log10(max_time * 2)])
+
+        return fig, cti_text
+    except Exception as e:
+        return fig, f"Erro ao plotar TCC: {e}"

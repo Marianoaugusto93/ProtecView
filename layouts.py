@@ -260,3 +260,179 @@ layout_fault_calc = html.Div(className='module-container', children=[
     html.Div(id='out_fault_ll', style={'display': 'inline-block', 'fontWeight': 'bold'}),
 ])
 # --- [FIM] NOVO Layout da Aba 4 ---
+
+# --- [INÍCIO] NOVO Layout da Aba 5: Ampacidade de Cabos ---
+layout_ampacity = html.Div(className='module-container', children=[
+    html.H2(children='Calculadora de Ampacidade de Cabos'),
+    html.P(
+        "Calcula a capacidade de condução de corrente de um cabo com base em fatores de correção (Baseado em tabelas IEC 60364-5-52)."),
+
+    # --- Entradas (Inputs) ---
+    html.H4("Dados de Entrada"),
+
+    html.Label("Corrente Nominal do Cabo (A):"),
+    html.P("Corrente base do cabo em condições ideais (ex: 30°C, ao ar)."),
+    dcc.Input(id='amp_base_current', value='100', type='number', className='DashInput'),
+    html.Br(), html.Br(),
+
+    html.Label("Tipo de Isolamento:"),
+    dcc.Dropdown(
+        id='amp_insulation_type',
+        options=[
+            {'label': 'PVC (70°C)', 'value': 'pvc'},
+            {'label': 'XLPE / EPR (90°C)', 'value': 'xlpe_epr'},
+        ],
+        value='xlpe_epr',
+        clearable=False,
+        className='DashDropdown'
+    ),
+    html.Br(),
+
+    html.Label("Temperatura Ambiente (°C):"),
+    dcc.Input(id='amp_ambient_temp', value='40', type='number', className='DashInput'),
+    html.Br(), html.Br(),
+
+    html.Label("Método de Instalação (Agrupamento):"),
+    dcc.Dropdown(
+        id='amp_grouping_type',
+        options=[
+            {'label': 'Sem agrupamento (1 circuito)', 'value': 1},
+            {'label': 'Agrupado (2 circuitos)', 'value': 2},
+            {'label': 'Agrupado (3 circuitos)', 'value': 3},
+            {'label': 'Agrupado (4 circuitos)', 'value': 4},
+        ],
+        value=1,
+        clearable=False,
+        className='DashDropdown'
+    ),
+    html.Br(),
+
+    html.Button('Calcular Ampacidade', id='btn_calc_ampacity', n_clicks=0, className='DashButton'),
+    html.Hr(),
+
+    # --- Saídas (Outputs) ---
+    html.H4("Resultados"),
+
+    html.Label("Fator de Correção de Temperatura (F_temp): "),
+    html.Div(id='out_amp_f_temp', style={'display': 'inline-block', 'fontWeight': 'bold', 'color': '#00dd00'}),
+    html.Br(),
+
+    html.Label("Fator de Correção de Agrupamento (F_group): "),
+    html.Div(id='out_amp_f_group', style={'display': 'inline-block', 'fontWeight': 'bold', 'color': '#00dd00'}),
+    html.Br(),
+
+    html.H3("Ampacidade Corrigida (A): "),
+    html.Div(id='out_amp_corrected',
+             style={'display': 'inline-block', 'fontWeight': 'bold', 'fontSize': '1.5em', 'color': '#00aaff'}),
+])
+# --- [FIM] NOVO Layout da Aba 5 ---
+
+# --- [INÍCIO] Layout da Aba 6: Saturação de TC (Com Gráfico) ---
+layout_ct_saturation = html.Div(className='module-container', children=[
+    html.H2(children='Calculadora de Saturação de TC (ANSI/IEEE)'),
+    html.P("Verifica se um TC irá saturar com base na corrente de falta e na carga (burden)."),
+
+    # --- Entradas (Inputs) ---
+    html.H4("Dados do Sistema e Falta"),
+    html.Label("Corrente de Falta Primária (A):"),
+    html.P(
+        "A corrente de falta simétrica no ponto do TC. (Pode vir do Módulo 'Cálculo de Faltas', após converter de p.u.)"),
+    dcc.Input(id='ctsat_if_primary', value='10000', type='number', className='DashInput'),
+    html.Br(), html.Br(),
+
+    html.Label("Relação X/R do Sistema:"),
+    dcc.Input(id='ctsat_xr_ratio', value='15', type='number', className='DashInput'),
+    html.Br(), html.Br(),
+
+    html.H4("Dados do Transformador de Corrente (TC)"),
+    html.Label("Rácio do TC (ex: 600/5):"),
+    dcc.Input(id='ctsat_ratio_num', value='600', type='number', className='DashInput', style={'width': 100}),
+    html.Label(" / 5 A"),
+    html.Br(), html.Br(),
+
+    html.Label("Classe de Saturação (ex: C400):"),
+    html.P("O número da classe (ex: 400) é a tensão de kneepoint (Vk) real."),
+    dcc.Input(id='ctsat_vk_actual', value='400', type='number', className='DashInput'),
+    html.Label(" V (Kneepoint)"),
+    html.Br(), html.Br(),
+
+    html.Label("Resistência Secundária do TC (Rct) (Ω):"),
+    dcc.Input(id='ctsat_rct', value='0.5', type='number', className='DashInput'),
+    html.Br(), html.Br(),
+
+    html.Label("Resistência do Burden (Relé + Fios) (Rb) (Ω):"),
+    dcc.Input(id='ctsat_rb', value='2.0', type='number', className='DashInput'),
+    html.Br(), html.Br(),
+
+    html.Button('Verificar Saturação', id='btn_calc_ctsat', n_clicks=0, className='DashButton'),
+    html.Hr(),
+
+    # --- Saídas (Outputs) ---
+    html.H4("Resultados da Análise"),
+
+    html.Label("Corrente de Falta Secundária (If,sec): "),
+    html.Div(id='out_ctsat_if_sec', style={'display': 'inline-block', 'fontWeight': 'bold', 'color': '#00dd00'}),
+    html.Br(),
+
+    html.Label("Tensão de Kneepoint REQUERIDA (Vk,req): "),
+    html.Div(id='out_ctsat_vk_req', style={'display': 'inline-block', 'fontWeight': 'bold', 'color': '#00dd00'}),
+    html.Br(),
+
+    html.H3("Resultado:"),
+    html.Div(id='out_ctsat_result',
+             style={'fontWeight': 'bold', 'fontSize': '1.5em', 'padding': '10px', 'borderRadius': '5px'}),
+
+    # --- [NOVO] Gráfico de Saturação ---
+    dcc.Graph(id='ctsat_graph')
+])
+# --- [FIM] NOVO Layout da Aba 6 ---
+
+# --- [INÍCIO] NOVO Layout da Aba 7: Proteção Diferencial (87) ---
+layout_diff = html.Div(className='module-container', children=[
+    html.H2(children='Visualizador de Proteção Diferencial (ANSI 87)'),
+    html.P("Plota a curva de restrição (slope) de um relé diferencial e pontos de operação de teste."),
+
+    # --- Coluna da Esquerda: Definições ---
+    html.Div(style={'width': '45%', 'display': 'inline-block', 'verticalAlign': 'top', 'paddingRight': '2%'}, children=[
+        html.H4("Definições do Relé Diferencial"),
+
+        html.Label("Corrente de Pickup Mínima (Pickup / PU):"),
+        dcc.Input(id='diff_pickup', value='0.3', type='number', className='DashInput'),
+        html.Br(), html.Br(),
+
+        html.Label("Inclinação (Slope) 1 (%):"),
+        dcc.Input(id='diff_slope1', value='25', type='number', className='DashInput'),
+        html.Br(), html.Br(),
+
+        html.Label("Ponto de Inflexão (Breakpoint) 1 (Ir):"),
+        dcc.Input(id='diff_bp1', value='2.0', type='number', className='DashInput'),
+        html.Br(), html.Br(),
+
+        html.Label("Inclinação (Slope) 2 (%):"),
+        dcc.Input(id='diff_slope2', value='80', type='number', className='DashInput'),
+        html.Br(), html.Br(),
+
+        html.Label("Limite Máx. de Restrição (Ir_max):"),
+        dcc.Input(id='diff_ir_max', value='10', type='number', className='DashInput'),
+        html.Br(), html.Br(),
+
+        html.H4("Ponto de Teste (ex: Inrush ou Falta Externa)"),
+
+        html.Label("Corrente de Operação (Iop):"),
+        dcc.Input(id='diff_test_iop', value='0.8', type='number', className='DashInput'),
+        html.Br(), html.Br(),
+
+        html.Label("Corrente de Restrição (Ir):"),
+        dcc.Input(id='diff_test_ir', value='1.5', type='number', className='DashInput'),
+        html.Br(), html.Br(),
+
+        html.Button('Plotar Curva Diferencial', id='btn_plot_diff', n_clicks=0, className='DashButton'),
+    ]),
+
+    # --- Coluna da Direita: Gráfico ---
+    html.Div(style={'width': '53%', 'display': 'inline-block', 'verticalAlign': 'top'}, children=[
+        html.H4("Curva de Operação (Iop vs Ir)"),
+        dcc.Graph(id='diff_graph')
+    ])
+])
+# --- [FIM] NOVO Layout da Aba 7 ---

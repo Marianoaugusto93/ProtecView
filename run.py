@@ -1,5 +1,5 @@
 # Ficheiro: run.py
-# (Revertido para remover o dcc.Store)
+# (Adicionado o novo layout de Proteção Diferencial)
 
 from dash import dcc, html
 
@@ -8,9 +8,16 @@ from app import app
 
 server = app.server
 # Importa as variáveis de layout do layouts.py
-from layouts import layout_home, layout_sym, layout_dist, layout_tcc, layout_fault_calc
+from layouts import layout_home, layout_sym, layout_dist, layout_tcc, layout_fault_calc, layout_ampacity, \
+    layout_ct_saturation, layout_diff  # <-- ADICIONE O NOVO LAYOUT
 # Importa os callbacks
-import callbacks
+import callbacks.callbacks_sym
+import callbacks.callbacks_dist
+import callbacks.callbacks_tcc
+import callbacks.callbacks_fault
+import callbacks.callbacks_amp
+import callbacks.callbacks_ct
+import callbacks.callbacks_diff
 
 # --- Definir Estilos das Abas com o método 'colors' ---
 TAB_COLORS = {
@@ -22,7 +29,7 @@ TAB_COLORS = {
 # --- 2. Definir o Layout da Aplicação ---
 app.layout = html.Div(children=[
 
-    # O dcc.Store(id='zone-storage') foi REMOVIDO
+    # O dcc.Store(id='zone-storage') foi REMOVIDO no rollback
 
     html.H1(children='ProtecView: Ferramentas de Análise de Sistemas Elétricos'),
 
@@ -46,13 +53,28 @@ app.layout = html.Div(children=[
 
         # --- Aba 4: Cálculo de Faltas ---
         dcc.Tab(label='Cálculo de Faltas', children=[
-            layout_fault_calc  # <-- USA A VARIÁVEL IMPORTADA
+            layout_fault_calc
         ], value='tab-fault'),
 
         # --- Aba 5: Curvas TCC ---
         dcc.Tab(label='Curvas TCC', children=[
-            layout_tcc  # Usa a variável importada
+            layout_tcc
         ], value='tab-tcc'),
+
+        # --- Aba 6: Ampacidade ---
+        dcc.Tab(label='Ampacidade de Cabos', children=[
+            layout_ampacity
+        ], value='tab-amp'),
+
+        # --- Aba 7: Saturação de TC ---
+        dcc.Tab(label='Saturação de TC', children=[
+            layout_ct_saturation
+        ], value='tab-ctsat'),
+
+        # --- [NOVO] Aba 8: Proteção Diferencial ---
+        dcc.Tab(label='Proteção Diferencial (87)', children=[
+            layout_diff  # <-- ADICIONE ESTA LINHA
+        ], value='tab-diff'),
 
     ],
              value='tab-home',

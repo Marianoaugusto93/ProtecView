@@ -159,3 +159,180 @@ def calculate_fault_currents(v_prefault, z1, z2, z0):
 
     return results
 # --- [FIM] NOVAS FUNÇÕES DO MÓDULO 4 ---
+
+# --- [INÍCIO] NOVAS FUNÇÕES DO MÓDULO 5 (AMPACIDADE) ---
+
+# Tabela Fator de Correção de Temperatura (Exemplo baseado na IEC 60364-5-52, Tabela B.52.14)
+TEMP_FACTORS = {
+    'pvc': {  # Para PVC (70°C)
+        10: 1.22, 15: 1.17, 20: 1.12, 25: 1.06, 30: 1.00,
+        35: 0.94, 40: 0.87, 45: 0.79, 50: 0.71, 55: 0.61, 60: 0.50
+    },
+    'xlpe_epr': {  # Para XLPE/EPR (90°C)
+        10: 1.15, 15: 1.12, 20: 1.08, 25: 1.04, 30: 1.00,
+        35: 0.96, 40: 0.91, 45: 0.87, 50: 0.82, 55: 0.76, 60: 0.71,
+        65: 0.65, 70: 0.58, 75: 0.50, 80: 0.41
+    }
+}
+
+# Tabela Fator de Correção de Agrupamento (Exemplo baseado na IEC 60364-5-52, Tabela B.52.17)
+# (Assumindo cabos multipolares em feixe ou camada única)
+GROUPING_FACTORS = {
+    1: 1.00,  # 1 circuito
+    2: 0.80,  # 2 circuitos
+    3: 0.70,  # 3 circuitos
+    4: 0.65,  # 4 circuitos
+    5: 0.60,  # 5 circuitos (adicionamos mais alguns)
+    6: 0.57,  # 6 circuitos
+    7: 0.54,  # 7 circuitos
+    8: 0.52,  # 8 circuitos
+    9: 0.50  # 9 circuitos
+}
+
+
+def get_temp_correction_factor(insulation_type, temp):
+    """
+    Encontra o fator de correção de temperatura mais próximo da tabela.
+    """
+    if temp < 10: return TEMP_FACTORS[insulation_type].get(10)
+    if temp > (60 if insulation_type == 'pvc' else 80):
+        return TEMP_FACTORS[insulation_type].get(60 if insulation_type == 'pvc' else 80)
+
+    # Arredonda a temperatura para o múltiplo de 5 mais próximo
+    rounded_temp = int(5 * round(temp / 5))
+    return TEMP_FACTORS[insulation_type].get(rounded_temp, 1.0)  # Retorna 1.0 se não encontrar
+
+
+def get_grouping_correction_factor(num_circuits):
+    """
+    Encontra o fator de correção de agrupamento.
+    """
+    # Se o número for maior que a tabela, usa o último valor (o pior caso)
+    if num_circuits > 9:
+        return GROUPING_FACTORS[9]
+
+    return GROUPING_FACTORS.get(num_circuits, 1.0)  # Retorna 1.0 se não encontrar (ex: 0)
+
+
+def calculate_ampacity(base_current, f_temp, f_group):
+    """
+    Calcula a ampacidade corrigida final.
+    """
+    try:
+        corrected_ampacity = float(base_current) * f_temp * f_group
+        return corrected_ampacity
+    except Exception:
+        return 0.0
+
+# --- [FIM] NOVAS FUNÇÕES DO MÓDULO 5 (AMPACIDADE) ---
+
+# No ficheiro: utils.py
+# ... (as suas funções anteriores, calculate_ampacity, etc., ficam aqui em cima) ...
+
+# --- [INÍCIO] NOVAS FUNÇÕES DO MÓDULO 6 (SATURAÇÃO DE TC) ---
+
+def check_ct_saturation(if_primary, ct_ratio_num, vk_actual, r_ct, r_b, xr_ratio):
+    """
+    Verifica a saturação do TC usando a fórmula de tensão de kneepoint ANSI.
+    Retorna um dicionário com todos os resultados dos cálculos.
+    """
+    results = {
+        'if_sec': 0.0,
+        'vk_required': 0.0,
+        'status': 'Erro'  # 'Saturação OK' ou 'SATURAÇÃO CRÍTICA'
+    }
+
+    try:
+        # --- 1. Calcular Rácio do TC ---
+        # (Assumindo que o secundário é sempre 5A)
+        ct_ratio = float(ct_ratio_num) / 5.0
+
+        # --- 2. Calcular Corrente Secundária de Falta ---
+        if_sec = float(if_primary) / ct_ratio
+        results['if_sec'] = if_sec
+
+        # --- 3. Calcular Resistência Total do Secundário ---
+        r_total = float(r_ct) + float(r_b)
+
+        # --- 4. Calcular Tensão de Kneepoint Requerida (Vk,req) ---
+        # Vk_req = If_sec * (Rct + Rb) * (1 + X/R)
+        vk_required = if_sec * r_total * (1 + float(xr_ratio))
+        results['vk_required'] = vk_required
+
+        # --- 5. Comparar ---
+        if float(vk_actual) >= vk_required:
+            results['status'] = 'SATURAÇÃO OK'
+        else:
+            results['status'] = 'SATURAÇÃO CRÍTICA'
+
+        return results
+
+    except Exception as e:
+        results['status'] = f'Erro no cálculo: {e}'
+        return results
+
+# --- [FIM] NOVAS FUNÇÕES DO MÓDULO 6 (SATURAÇÃO DE TC) ---
+
+# --- [INÍCIO] NOVAS FUNÇÕES DO MÓDULO 7 (PROTEÇÃO DIFERENCIAL) ---
+
+def generate_differential_curve(pickup, slope1, bp1, slope2, ir_max):
+    """
+    Calcula os pontos (x, y) para a curva de restrição diferencial.
+
+    :param pickup: Corrente de pickup (Iop)
+    :param slope1: Inclinação 1 (em %)
+    :param bp1: Ponto de inflexão (Breakpoint) 1 (em Ir)
+    :param slope2: Inclinação 2 (em %)
+    :param ir_max: Limite máximo de restrição (eixo x)
+    :return: Duas listas: (lista_ir, lista_iop)
+    """
+
+    try:
+        # Converte inputs para float
+        p = float(pickup)
+        s1 = float(slope1) / 100.0  # Converte % para decimal
+        b1 = float(bp1)
+        s2 = float(slope2) / 100.0  # Converte % para decimal
+        max_r = float(ir_max)
+
+        # --- Listas de pontos para o gráfico ---
+        list_ir = []  # Eixo X (Restrição)
+        list_iop = []  # Eixo Y (Operação)
+
+        # --- Ponto 1: Pickup Mínimo (região horizontal) ---
+        # A curva começa em Iop = pickup, e vai até Ir = p/s1 (se s1 > 0)
+        # Para simplificar, vamos começar com um ponto horizontal
+        list_ir.append(0)
+        list_iop.append(p)
+
+        # --- Ponto 2: Início do Slope 1 ---
+        # A secção de pickup termina e a inclinação começa
+        # (isto é uma aproximação comum, algumas curvas são diferentes)
+        list_ir.append(0.001)  # Um ponto ligeiramente depois de zero
+        list_iop.append(p)
+
+        # --- Ponto 3: Fim do Slope 1 (no Breakpoint 1) ---
+        list_ir.append(b1)
+        # Iop no breakpoint 1 = Pickup + (Slope1 * Ir_bp1)
+        iop_at_bp1 = p + (s1 * b1)
+        list_iop.append(iop_at_bp1)
+
+        # --- Ponto 4: Fim do Slope 2 (no limite máximo) ---
+        list_ir.append(max_r)
+        # Iop no max = Iop_no_bp1 + (Slope2 * (Ir_max - Ir_bp1))
+        iop_at_max = iop_at_bp1 + (s2 * (max_r - b1))
+        list_iop.append(iop_at_max)
+
+        # --- Ponto 5: Linha vertical (opcional, para fechar a "área" de operação)
+        #list_ir.append(max_r)
+        #list_iop.append(max(iop_at_max, max_r) * 1.2)  # Um ponto bem alto
+
+        return list_ir, list_iop
+
+    except Exception as e:
+        print(f"Erro ao gerar curva diferencial: {e}")
+        # Retorna listas vazias em caso de erro
+        return [], []
+
+# --- [FIM] NOVAS FUNÇÕES DO MÓDULO 7 (PROTEÇÃO DIFERENCIAL) ---
+
