@@ -1,5 +1,5 @@
 # Ficheiro: callbacks/callbacks_diff.py
-# (Com lógica de plotagem de preenchimento corrigida)
+# (Com lógica de plotagem de preenchimento azul corrigida)
 
 from dash import Input, Output, State
 import plotly.graph_objects as go
@@ -13,15 +13,16 @@ import numpy as np
     Output('diff_graph', 'figure'),
     [Input('btn_plot_diff', 'n_clicks')],
     [State('diff_pickup', 'value'),
-     State('diff_slope1', 'value'),
      State('diff_bp1', 'value'),
+     State('diff_slope1', 'value'),
+     State('diff_bp2', 'value'),
      State('diff_slope2', 'value'),
-     State('diff_ir_max', 'value'),
+     State('diff_unrestrained', 'value'),
      State('diff_test_iop', 'value'),
      State('diff_test_ir', 'value')]
 )
-def plot_differential_curve(n_clicks, pickup_str, slope1_str, bp1_str, slope2_str, ir_max_str, test_iop_str,
-                            test_ir_str):
+def plot_differential_curve(n_clicks, pickup_str, bp1_str, slope1_str, bp2_str, slope2_str, unrestrained_str,
+                            test_iop_str, test_ir_str):
     # Cria um gráfico base escuro
     fig = go.Figure(layout=go.Layout(
         template="plotly_dark",
@@ -39,35 +40,34 @@ def plot_differential_curve(n_clicks, pickup_str, slope1_str, bp1_str, slope2_st
     try:
         # --- 1. Converter inputs para números ---
         p = float(pickup_str)
-        s1 = float(slope1_str) / 100.0
         b1 = float(bp1_str)
+        s1 = float(slope1_str) / 100.0
+        b2 = float(bp2_str)
         s2 = float(slope2_str) / 100.0
-        ir_max_input = float(ir_max_str)  # Limite da curva definido pelo user
+        unres = float(unrestrained_str)
         test_iop = float(test_iop_str)
         test_ir = float(test_ir_str)
 
         # --- 2. Gerar os pontos da curva de restrição (do utils.py) ---
-        # (A função utils agora só vai até ir_max_input)
-        list_ir, list_iop = generate_differential_curve(p, float(slope1_str), b1, float(slope2_str), ir_max_input)
+        list_ir, list_iop = generate_differential_curve(p, b1, float(slope1_str), b2, float(slope2_str), unres)
+
+        if not list_ir:  # Se a função utils falhar
+            raise Exception("Falha ao gerar pontos da curva.")
 
         # --- 3. Determinar limites dinâmicos dos eixos ---
-        max_x_axis = max(ir_max_input, test_ir, 1.0) * 1.2
-        max_y_axis = max(list_iop[-1] if list_iop else p, test_iop, 1.0) * 1.2
+        # (Usamos list_ir[-1] que é o ponto final horizontal da curva)
+        max_x_axis = max(list_ir[-1], test_ir, 1.0) * 1.1  # 10% de margem
+        max_y_axis = max(list_iop[-1], test_iop, 1.0) * 1.2  # 20% de margem
 
         # --- 4. [CORREÇÃO] Estender a curva até ao limite do gráfico (max_x_axis) ---
         # Copia os pontos da curva base
         curve_ir_extended = list(list_ir)
         curve_iop_extended = list(list_iop)
 
-        # Se o eixo X for maior que o fim da curva, estende a linha (slope 2)
-        if max_x_axis > ir_max_input:
-            iop_no_bp1 = p + (s1 * b1)
-            # Calcula o Iop no limite do gráfico
-            iop_at_max_x_axis = iop_no_bp1 + (s2 * (max_x_axis - b1))
-
-            # Adiciona os novos pontos estendidos
+        # Se o eixo X for maior que o fim da curva, estende a linha horizontal
+        if max_x_axis > curve_ir_extended[-1]:
             curve_ir_extended.append(max_x_axis)
-            curve_iop_extended.append(iop_at_max_x_axis)
+            curve_iop_extended.append(unres)  # Mantém a altura horizontal
 
         # --- 5. Plotar a "Zona de Operação" (Vermelha) ---
         # Usa a curva estendida para desenhar a área
@@ -99,11 +99,20 @@ def plot_differential_curve(n_clicks, pickup_str, slope1_str, bp1_str, slope2_st
         iop_limite_no_ponto = 0
         if test_ir < 0: test_ir = 0
 
-        if test_ir <= b1:
-            iop_limite_no_ponto = p + (s1 * test_ir)
-        else:
-            iop_no_bp1 = p + (s1 * b1)
-            iop_limite_no_ponto = iop_no_bp1 + (s2 * (test_ir - b1))
+        if test_iop >= unres:
+            iop_limite_no_ponto = 0
+        elif test_ir <= b1:
+            iop_limite_no_ponto = p
+        elif test_ir <= b2:
+            iop_limite_no_ponto = p + (s1 * (test_ir - b1))
+        else:  # test_ir > b2
+            # Se o ponto de teste estiver além do BP2, calculamos o limite
+            iop_no_bp2 = p + (s1 * (b2 - b1))
+            iop_limite_no_ponto = iop_no_bp2 + (s2 * (test_ir - b2))
+
+            # Garante que o limite não ultrapasse o "unrestrained"
+            if iop_limite_no_ponto > unres:
+                iop_limite_no_ponto = unres
 
         status_ponto = ""
         cor_ponto = ""

@@ -1,11 +1,24 @@
 from dash import dcc, html
 
-# --- Layout da Aba 1: Home ---
+# --- Layout da Aba 1: Home (MODIFICADO) ---
 layout_home = html.Div(className='module-container', children=[
     html.H2('Bem-vindo ao ProtecView!'),
     html.P('Este é um conjunto de ferramentas de análise de sistemas elétricos de potência.'),
-    html.P('Selecione uma das ferramentas nas abas acima para começar.')
+    html.P('Selecione uma das ferramentas nas abas acima para começar.'),
+
+    # --- NOVO: Disclaimer ---
+    html.Hr(),
+    html.P(children=[
+        html.Strong("Disclaimer: "),
+        "Esta ferramenta foi desenvolvida por um engenheiro eletricista com o auxílio de inteligência artificial (Gemini) para fins educacionais e de demonstração."
+    ]),
+    html.P(children=[
+        "Caso seja identificado algum bug ou inconsistência, por favor, informe pelo email: ",
+        # Adiciona um link de email clicável
+        html.A("protecview@eletrogrid.com.br", href="mailto:protecview@eletrogrid.com.br")
+    ])
 ])
+# --- FIM DA MODIFICAÇÃO ---
 # --- [INÍCIO] Layout da Aba 2: Componentes Simétricos (MODIFICADO) ---
 
 layout_sym = html.Div(className='module-container', children=[
@@ -387,36 +400,40 @@ layout_ct_saturation = html.Div(className='module-container', children=[
 ])
 # --- [FIM] NOVO Layout da Aba 6 ---
 
-# --- [INÍCIO] NOVO Layout da Aba 7: Proteção Diferencial (87) ---
+# --- [INÍCIO] Layout da Aba 7: Proteção Diferencial (MODIFICADO) ---
 layout_diff = html.Div(className='module-container', children=[
     html.H2(children='Visualizador de Proteção Diferencial (ANSI 87)'),
     html.P("Plota a curva de restrição (slope) de um relé diferencial e pontos de operação de teste."),
 
     # --- Coluna da Esquerda: Definições ---
     html.Div(style={'width': '45%', 'display': 'inline-block', 'verticalAlign': 'top', 'paddingRight': '2%'}, children=[
-        html.H4("Definições do Relé Diferencial"),
+        html.H4("Definições do Relé Diferencial (em p.u.)"),
 
-        html.Label("Corrente de Pickup Mínima (Pickup / PU):"),
+        html.Label("Pickup Mínimo (Idif >):"),
         dcc.Input(id='diff_pickup', value='0.3', type='number', className='DashInput'),
+        html.Br(), html.Br(),
+
+        html.Label("Breakpoint 1 (Ir >):"),
+        dcc.Input(id='diff_bp1', value='0.0', type='number', className='DashInput'),
         html.Br(), html.Br(),
 
         html.Label("Inclinação (Slope) 1 (%):"),
         dcc.Input(id='diff_slope1', value='25', type='number', className='DashInput'),
         html.Br(), html.Br(),
 
-        html.Label("Ponto de Inflexão (Breakpoint) 1 (Ir):"),
-        dcc.Input(id='diff_bp1', value='2.0', type='number', className='DashInput'),
+        html.Label("Breakpoint 2 (Ir >):"),
+        dcc.Input(id='diff_bp2', value='2.0', type='number', className='DashInput'),
         html.Br(), html.Br(),
 
         html.Label("Inclinação (Slope) 2 (%):"),
         dcc.Input(id='diff_slope2', value='80', type='number', className='DashInput'),
         html.Br(), html.Br(),
 
-        html.Label("Limite Máx. de Restrição (Ir_max):"),
-        dcc.Input(id='diff_ir_max', value='10', type='number', className='DashInput'),
+        html.Label("Pickup Não Restrito (Idiff >>):"),
+        dcc.Input(id='diff_unrestrained', value='8.0', type='number', className='DashInput'),
         html.Br(), html.Br(),
 
-        html.H4("Ponto de Teste (ex: Inrush ou Falta Externa)"),
+        html.H4("Ponto de Teste (em p.u.)"),
 
         html.Label("Corrente de Operação (Iop):"),
         dcc.Input(id='diff_test_iop', value='0.8', type='number', className='DashInput'),
