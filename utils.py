@@ -356,3 +356,185 @@ def generate_differential_curve(pickup, bp1, slope1, bp2, slope2, unrestrained):
         return [], []
 
 # --- [FIM] NOVAS FUNÇÕES DO MÓDULO 7 (PROTEÇÃO DIFERENCIAL) ---
+
+# --- [INÍCIO] NOVAS FUNÇÕES DO MÓDULO 8 (INRUSH) ---
+
+def calculate_inrush(kva, kv, multiplier, restraint_factor):
+    """
+    Estima as correntes de Inrush (pico, Iop, Ir) em p.u. da corrente nominal.
+    """
+    results = {
+        'i_nominal_amps': 0.0,
+        'i_peak_amps': 0.0,
+        'iop_pu': 0.0,
+        'ir_pu': 0.0
+    }
+
+    try:
+        # --- 1. Calcular Corrente Nominal (Amperes) ---
+        # (Assumindo trifásico, kV é linha-linha)
+        i_nominal_amps = float(kva) / (np.sqrt(3) * float(kv))
+        results['i_nominal_amps'] = i_nominal_amps
+
+        # --- 2. Calcular Corrente de Inrush de Pico (Amperes) ---
+        i_peak_amps = i_nominal_amps * float(multiplier)
+        results['i_peak_amps'] = i_peak_amps
+
+        # --- 3. Calcular Iop e Ir em p.u. (referente a I_nominal) ---
+        # Iop (RMS) = Ipeak / sqrt(2)
+        # Iop (p.u.) = (Ipeak / sqrt(2)) / I_nominal
+        # Iop (p.u.) = (I_nominal * multiplier) / (sqrt(2) * I_nominal)
+        iop_pu = float(multiplier) / np.sqrt(2)
+        results['iop_pu'] = iop_pu
+
+        # Ir (Restrição) = Iop * restraint_factor (ex: 0.5 para 2º harmónico)
+        # (Nota: Esta é uma simplificação. A restrição real depende da definição do relé)
+        ir_pu = iop_pu * float(restraint_factor)
+        results['ir_pu'] = ir_pu
+
+        return results
+
+    except Exception as e:
+        print(f"Erro ao calcular inrush: {e}")
+        return results
+
+# --- [FIM] NOVAS FUNÇÕES DO MÓDULO 8 (INRUSH) ---
+
+# --- [INÍCIO] NOVAS FUNÇÕES DO MÓDULO 9 (Dimensionamento de Cabos) ---
+
+def calculate_voltage_drop(load_current, length_km, r_ohm_km, x_ohm_km, cos_phi, system_voltage_v):
+    """
+    Calcula a queda de tensão (VD) em Volts e percentual.
+    Fórmula para sistema trifásico (assumido).
+    """
+    results = {
+        'vd_volts': 0.0,
+        'vd_percent': 0.0,
+        'status': 'OK'
+    }
+
+    try:
+        # Inputs
+        I = float(load_current)
+        L = float(length_km)
+        R = float(r_ohm_km)
+        X = float(x_ohm_km)
+        cos_phi = float(cos_phi)
+        V_linha = float(system_voltage_v)
+
+        # Calcula o sin(phi)
+        sin_phi = np.sqrt(1 - cos_phi ** 2)
+
+        # Fórmula da Queda de Tensão Trifásica (em Volts)
+        # VD (linha) = sqrt(3) * I * L * (R * cos(phi) + X * sin(phi))
+        vd_volts = np.sqrt(3) * I * L * (R * cos_phi + X * sin_phi)
+        results['vd_volts'] = vd_volts
+
+        # Queda de Tensão Percentual
+        vd_percent = (vd_volts / V_linha) * 100.0
+        results['vd_percent'] = vd_percent
+
+        return results
+
+    except Exception as e:
+        print(f"Erro ao calcular VD: {e}")
+        return results
+
+
+def check_short_circuit_withstand(fault_current_a, fault_time_s, cross_section_mm2, k_material):
+    """
+    Verifica a suportabilidade térmica de curto-circuito (I²t).
+    Fórmula: (K * S)² >= (I_fault² * t)
+    """
+    results = {
+        'fault_energy_a2s': 0.0,
+        'cable_withstand_a2s': 0.0,
+        'status': 'Erro'  # 'OK' ou 'FALHA'
+    }
+
+    try:
+        # --- 1. Calcular a Energia da Falta (I²t) ---
+        I_fault = float(fault_current_a)
+        t = float(fault_time_s)
+        fault_energy = (I_fault ** 2) * t
+        results['fault_energy_a2s'] = fault_energy
+
+        # --- 2. Calcular a Suportabilidade do Cabo (K²S²) ---
+        K = float(k_material)
+        S = float(cross_section_mm2)
+        cable_withstand = (K ** 2) * (S ** 2)
+        results['cable_withstand_a2s'] = cable_withstand
+
+        # --- 3. Comparar ---
+        if cable_withstand >= fault_energy:
+            results['status'] = 'OK'
+        else:
+            results['status'] = 'FALHA (Cabo subdimensionado para curto)'
+
+        return results
+
+    except Exception as e:
+        print(f"Erro ao calcular I²t: {e}")
+        results['status'] = f"Erro: {e}"
+        return results
+
+# --- [FIM] NOVAS FUNÇÕES DO MÓDULO 9 (Dimensionamento de Cabos) ---
+
+# --- [INÍCIO] NOVAS FUNÇÕES DO MÓDULO 10 (PARTIDA DE MOTOR) ---
+
+def generate_motor_curves(i_nominal, ip_in_ratio, t_start, t_locked):
+    """
+    Calcula os pontos (x, y) para as curvas de partida e térmica do motor.
+
+    :param i_nominal: Corrente nominal (A)
+    :param ip_in_ratio: Rácio Corrente de Partida / Corrente Nominal (ex: 6)
+    :param t_start: Tempo de partida (s)
+    :param t_locked: Tempo de rotor bloqueado (s)
+    :return: Dicionário com as listas de pontos para 'partida' e 'termica'
+    """
+
+    results = {
+        'start_currents': [],
+        'start_times': [],
+        'thermal_currents': [],
+        'thermal_times': []
+    }
+
+    try:
+        # --- 1. Converter inputs ---
+        In = float(i_nominal)
+        Ip_In = float(ip_in_ratio)
+        ts = float(t_start)
+        tl = float(t_locked)
+
+        # Corrente de partida (Ip)
+        Ip = In * Ip_In
+
+        # --- 2. Gerar Curva de Partida (Starting Curve) ---
+        # (Aproximação: uma linha em "L")
+        results['start_currents'] = [Ip, Ip, In]
+        results['start_times'] = [0.01, ts, ts]  # Começa em 0.01s para plot log
+
+        # --- 3. Gerar Curva Térmica (Locked Rotor / Damage Curve) ---
+        # (Aproximação: uma curva I²t = k, onde k = Ip² * tl)
+
+        # Constante térmica (k)
+        k = (Ip ** 2) * tl
+
+        # Gera pontos de corrente da curva térmica (ex: de 1.1*In até Ip)
+        # Vamos gerar alguns pontos para a curva
+        thermal_currents = np.linspace(In * 1.1, Ip * 1.1, 20)
+
+        # Calcula o tempo para cada corrente (t = k / I²)
+        thermal_times = [k / (i ** 2) for i in thermal_currents]
+
+        results['thermal_currents'] = thermal_currents
+        results['thermal_times'] = thermal_times
+
+        return results
+
+    except Exception as e:
+        print(f"Erro ao gerar curvas do motor: {e}")
+        return results
+
+# --- [FIM] NOVAS FUNÇÕES DO MÓDULO 10 (PARTIDA DE MOTOR) ---

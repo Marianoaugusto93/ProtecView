@@ -159,7 +159,7 @@ layout_dist = html.Div(className='module-container', children=[
 # --- Layout da Aba 4: Curvas TCC ---
 # --- [INÍCIO] Layout da Aba 4: Curvas TCC (MODIFICADO) ---
 
-# NOVO: Lista de opções de curva, incluindo IEC e IEEE
+# (a variável tcc_curve_options fica igual)
 tcc_curve_options = [
     {'label': 'IEC Standard Inverse', 'value': 'IEC Standard Inverse'},
     {'label': 'IEC Very Inverse', 'value': 'IEC Very Inverse'},
@@ -169,58 +169,80 @@ tcc_curve_options = [
     {'label': 'IEEE Extremely Inverse (EI)', 'value': 'IEEE Extremely Inverse'},
 ]
 
+# --- [INÍCIO] Layout da Aba 5: Curvas TCC (MODIFICADO para incluir Motor) ---
 layout_tcc = html.Div(className='module-container', children=[
     html.H2(children='Curvas de Característica Tempo-Corrente (TCC)'),
-    html.P("Nota: As curvas SEL U3/U4 da imagem são proprietárias. Usamos curvas IEC/IEEE como exemplo."),
+    html.P("Coordene dispositivos de proteção (relés, fusíveis) e analise a partida de motores."),
 
-    # -- Inputs Relé 1 (Montante) --
-    html.H4("Relé 1 (Montante)"),
-    html.Label("Tipo de Curva:"),
-    dcc.Dropdown(
-        id='tcc_r1_type',
-        options=tcc_curve_options,  # <-- USA A NOVA LISTA
-        value='IEEE Moderately Inverse',  # <-- Mudei o valor padrão
-        className='DashDropdown'
-    ),
-    html.Br(),
-    html.Label("Pickup (A):"),
-    dcc.Input(id='tcc_r1_pickup', value='5', type='number', className='DashInput'),
-    html.Label("Time Dial (TDS):"),
-    dcc.Input(id='tcc_r1_tds', value='7.37', type='number', className='DashInput'),
-    html.Br(),
+    # --- Coluna da Esquerda: Definições ---
+    html.Div(style={'width': '45%', 'display': 'inline-block', 'verticalAlign': 'top', 'paddingRight': '2%'}, children=[
 
-    # -- Inputs Relé 2 (Jusante) --
-    html.H4("Relé 2 (Jusante)"),
-    html.Label("Tipo de Curva:"),
-    dcc.Dropdown(
-        id='tcc_r2_type',
-        options=tcc_curve_options,  # <-- USA A NOVA LISTA
-        value='IEEE Very Inverse',  # <-- Mudei o valor padrão
-        className='DashDropdown'
-    ),
-    html.Br(),
-    html.Label("Pickup (A):"),
-    dcc.Input(id='tcc_r2_pickup', value='5', type='number', className='DashInput'),
-    html.Label("Time Dial (TDS):"),
-    dcc.Input(id='tcc_r2_tds', value='7.75', type='number', className='DashInput'),
-    html.Br(), html.Br(),
+        # -- Inputs Relé 1 (Upstream/Montante) --
+        html.H4("Relé 1 (Montante)"),
+        html.Label("Tipo de Curva:"),
+        dcc.Dropdown(id='tcc_r1_type', options=tcc_curve_options, value='IEEE Moderately Inverse',
+                     className='DashDropdown'),
+        html.Br(),
+        html.Label("Pickup (A):"),
+        dcc.Input(id='tcc_r1_pickup', value='5', type='number', className='DashInput'),
+        html.Label("Time Dial (TDS):"),
+        dcc.Input(id='tcc_r1_tds', value='7.37', type='number', className='DashInput'),
+        html.Br(),
 
-    # -- Inputs CTI --
-    html.Label("Corrente de Falta para CTI (A):"),
-    dcc.Input(id='tcc_fault_current', value='12.21', type='number', className='DashInput'),
-    html.Br(), html.Br(),
+        # -- Inputs Relé 2 (Downstream/Jusante) --
+        html.H4("Relé 2 (Jusante)"),
+        html.Label("Tipo de Curva:"),
+        dcc.Dropdown(id='tcc_r2_type', options=tcc_curve_options, value='IEEE Very Inverse', className='DashDropdown'),
+        html.Br(),
+        html.Label("Pickup (A):"),
+        dcc.Input(id='tcc_r2_pickup', value='5', type='number', className='DashInput'),
+        html.Label("Time Dial (TDS):"),
+        dcc.Input(id='tcc_r2_tds', value='7.75', type='number', className='DashInput'),
+        html.Br(),
 
-    html.Button('Plotar Curvas TCC', id='btn_plot_tcc', n_clicks=0, className='DashButton'),
-    html.Hr(),
+        # --- [NOVO] Seção de Partida de Motor ---
+        html.H4("Análise de Partida de Motor (Opcional)"),
+        html.Label("Habilitar Curva do Motor:"),
+        dcc.Checklist(
+            options=[{'label': ' Plotar Curvas do Motor', 'value': 'plot_motor'}],
+            value=[],
+            id='tcc_motor_enable'
+        ),
+        html.Br(),
+        html.Label("Corrente Nominal (In) (A):"),
+        dcc.Input(id='tcc_motor_in', value='100', type='number', className='DashInput'),
+        html.Br(),
+        html.Label("Corrente de Partida (Ip) / In:"),
+        dcc.Input(id='tcc_motor_ip_in', value='6', type='number', className='DashInput'),
+        html.Br(),
+        html.Label("Tempo de Partida (s):"),
+        dcc.Input(id='tcc_motor_t_start', value='5', type='number', className='DashInput'),
+        html.Br(),
+        html.Label("Tempo de Rotor Bloqueado (s):"),
+        html.P("Tempo máximo que o motor suporta Ip (curva térmica)."),
+        dcc.Input(id='tcc_motor_t_locked', value='20', type='number', className='DashInput'),
+        html.Br(), html.Br(),
+        # --- [FIM DA NOVA SEÇÃO] ---
 
-    # -- Saída CTI --
-    html.H4(id='tcc-cti-output'),  # Saída de texto para o CTI
+        # -- Inputs CTI --
+        html.Label("Corrente de Falta para CTI (A):"),
+        dcc.Input(id='tcc_fault_current', value='12.21', type='number', className='DashInput'),
+        html.Br(), html.Br(),
 
-    # -- Gráfico TCC --
-    dcc.Graph(id='tcc-graph')
+        html.Button('Plotar Curvas TCC', id='btn_plot_tcc', n_clicks=0, className='DashButton'),
 
+    ]),
+
+    # --- Coluna da Direita: Gráfico e Resultados ---
+    html.Div(style={'width': '53%', 'display': 'inline-block', 'verticalAlign': 'top'}, children=[
+        # -- Saída CTI --
+        html.H4(id='tcc-cti-output'),  # Saída de texto para o CTI
+
+        # -- Gráfico TCC --
+        dcc.Graph(id='tcc-graph')
+    ])
 ])
-# --- [FIM] Layout da Aba 4: Curvas TCC (MODIFICADO) ---
+# --- [FIM] Layout da Aba 5: Curvas TCC (MODIFICADO) ---
 
 # --- [INÍCIO] NOVO Layout da Aba 4: Cálculo de Faltas ---
 layout_fault_calc = html.Div(className='module-container', children=[
@@ -273,72 +295,129 @@ layout_fault_calc = html.Div(className='module-container', children=[
     html.Div(id='out_fault_ll', style={'display': 'inline-block', 'fontWeight': 'bold'}),
 ])
 # --- [FIM] NOVO Layout da Aba 4 ---
-
-# --- [INÍCIO] NOVO Layout da Aba 5: Ampacidade de Cabos ---
+# --- [INÍCIO] Layout da Aba 6: Ampacidade de Cabos (MODIFICADO) ---
 layout_ampacity = html.Div(className='module-container', children=[
-    html.H2(children='Calculadora de Ampacidade de Cabos'),
-    html.P(
-        "Calcula a capacidade de condução de corrente de um cabo com base em fatores de correção (Baseado em tabelas IEC 60364-5-52)."),
+    html.H2(children='Dimensionamento de Cabos (Ampacidade, VD, I²t)'),
 
-    # --- Entradas (Inputs) ---
-    html.H4("Dados de Entrada"),
+    # --- Coluna da Esquerda: Entradas ---
+    html.Div(style={'width': '45%', 'display': 'inline-block', 'verticalAlign': 'top', 'paddingRight': '2%'}, children=[
 
-    html.Label("Corrente Nominal do Cabo (A):"),
-    html.P("Corrente base do cabo em condições ideais (ex: 30°C, ao ar)."),
-    dcc.Input(id='amp_base_current', value='100', type='number', className='DashInput'),
-    html.Br(), html.Br(),
+        # --- Seção 1: Ampacidade ---
+        html.H4("Critério 1: Ampacidade"),
+        html.Label("Corrente Nominal Base (A):"),
+        dcc.Input(id='amp_base_current', value='100', type='number', className='DashInput'),
+        html.Br(),
+        html.Label("Tipo de Isolamento:"),
+        dcc.Dropdown(
+            id='amp_insulation_type',
+            options=[
+                {'label': 'PVC (70°C)', 'value': 'pvc'},
+                {'label': 'XLPE / EPR (90°C)', 'value': 'xlpe_epr'},
+            ],
+            value='xlpe_epr', clearable=False, className='DashDropdown'
+        ),
+        html.Br(),
+        html.Label("Temperatura Ambiente (°C):"),
+        dcc.Input(id='amp_ambient_temp', value='40', type='number', className='DashInput'),
+        html.Br(),
+        html.Label("Agrupamento (Nº de Circuitos):"),
+        dcc.Dropdown(
+            id='amp_grouping_type',
+            options=[{'label': f'{i} circuito(s)', 'value': i} for i in range(1, 10)],
+            value=1, clearable=False, className='DashDropdown'
+        ),
+        html.Br(),
 
-    html.Label("Tipo de Isolamento:"),
-    dcc.Dropdown(
-        id='amp_insulation_type',
-        options=[
-            {'label': 'PVC (70°C)', 'value': 'pvc'},
-            {'label': 'XLPE / EPR (90°C)', 'value': 'xlpe_epr'},
-        ],
-        value='xlpe_epr',
-        clearable=False,
-        className='DashDropdown'
-    ),
-    html.Br(),
+        # --- Seção 2: Queda de Tensão (VD) ---
+        html.H4("Critério 2: Queda de Tensão (VD)"),
+        html.Label("Corrente de Carga (A):"),
+        dcc.Input(id='vd_load_current', value='80', type='number', className='DashInput'),
+        html.Br(),
+        html.Label("Comprimento do Cabo (km):"),
+        dcc.Input(id='vd_length_km', value='0.15', type='number', className='DashInput'),
+        html.Br(),
+        html.Label("Tensão de Linha do Sistema (V):"),
+        dcc.Input(id='vd_system_voltage_v', value='380', type='number', className='DashInput'),
+        html.Br(),
+        html.Label("Resistência do Cabo (R) (Ω/km):"),
+        dcc.Input(id='vd_cable_r_ohm_km', value='0.25', type='number', className='DashInput'),
+        html.Br(),
+        html.Label("Reatância do Cabo (X) (Ω/km):"),
+        dcc.Input(id='vd_cable_x_ohm_km', value='0.08', type='number', className='DashInput'),
+        html.Br(),
+        html.Label("Fator de Potência da Carga (cos φ):"),
+        dcc.Input(id='vd_cos_phi', value='0.92', type='number', className='DashInput'),
+        html.Br(),
+        html.Label("Limite de Queda de Tensão (%):"),
+        dcc.Input(id='vd_limit_percent', value='4.0', type='number', className='DashInput'),
+        html.Br(), html.Br(),
 
-    html.Label("Temperatura Ambiente (°C):"),
-    dcc.Input(id='amp_ambient_temp', value='40', type='number', className='DashInput'),
-    html.Br(), html.Br(),
+        # --- Seção 3: Suportabilidade de Curto-Circuito (I²t) ---
+        html.H4("Critério 3: Suportabilidade (I²t)"),
+        html.P("Use os Módulos 4 (Faltas) e 5 (TCC) para obter estes valores."),
+        html.Label("Corrente de Curto-Circuito (A):"),
+        dcc.Input(id='sc_fault_current_a', value='5000', type='number', className='DashInput'),
+        html.Br(),
+        html.Label("Tempo de Atuação da Proteção (s):"),
+        dcc.Input(id='sc_fault_time_s', value='0.1', type='number', className='DashInput'),
+        html.Br(),
+        html.Label("Secção Transversal (Bitola) (mm²):"),
+        dcc.Input(id='sc_cable_cross_section_mm2', value='35', type='number', className='DashInput'),
+        html.Br(),
+        html.Label("Constante do Material (K):"),
+        dcc.Dropdown(
+            id='sc_material_constant_k',
+            options=[
+                {'label': 'Cobre / XLPE (K=143)', 'value': 143},
+                {'label': 'Cobre / PVC (K=115)', 'value': 115},
+                {'label': 'Alumínio / XLPE (K=94)', 'value': 94},
+                {'label': 'Alumínio / PVC (K=76)', 'value': 76},
+            ],
+            value=143, clearable=False, className='DashDropdown'
+        ),
+        html.Br(),
 
-    html.Label("Método de Instalação (Agrupamento):"),
-    dcc.Dropdown(
-        id='amp_grouping_type',
-        options=[
-            {'label': 'Sem agrupamento (1 circuito)', 'value': 1},
-            {'label': 'Agrupado (2 circuitos)', 'value': 2},
-            {'label': 'Agrupado (3 circuitos)', 'value': 3},
-            {'label': 'Agrupado (4 circuitos)', 'value': 4},
-        ],
-        value=1,
-        clearable=False,
-        className='DashDropdown'
-    ),
-    html.Br(),
+        html.Button('Dimensionar Cabo', id='btn_calc_ampacity', n_clicks=0, className='DashButton',
+                    style={'marginTop': '20px'}),
+    ]),
 
-    html.Button('Calcular Ampacidade', id='btn_calc_ampacity', n_clicks=0, className='DashButton'),
-    html.Hr(),
+    # --- Coluna da Direita: Resultados ---
+    html.Div(style={'width': '53%', 'display': 'inline-block', 'verticalAlign': 'top'}, children=[
 
-    # --- Saídas (Outputs) ---
-    html.H4("Resultados"),
+        # --- Resultados Ampacidade ---
+        html.H4("Resultados: Ampacidade"),
+        html.Label("Ampacidade Corrigida (A): "),
+        html.Div(id='out_amp_corrected', style={'display': 'inline-block', 'fontWeight': 'bold', 'fontSize': '1.2em'}),
+        html.Div(id='out_amp_result',
+                 style={'fontWeight': 'bold', 'fontSize': '1.5em', 'padding': '10px', 'borderRadius': '5px'}),
+        html.Hr(),
 
-    html.Label("Fator de Correção de Temperatura (F_temp): "),
-    html.Div(id='out_amp_f_temp', style={'display': 'inline-block', 'fontWeight': 'bold', 'color': '#00dd00'}),
-    html.Br(),
+        # --- Resultados Queda de Tensão ---
+        html.H4("Resultados: Queda de Tensão"),
+        html.Label("Queda de Tensão (V): "),
+        html.Div(id='out_vd_volts', style={'display': 'inline-block', 'fontWeight': 'bold'}),
+        html.Br(),
+        html.Label("Queda de Tensão (%): "),
+        html.Div(id='out_vd_percent', style={'display': 'inline-block', 'fontWeight': 'bold'}),
+        html.Div(id='out_vd_result',
+                 style={'fontWeight': 'bold', 'fontSize': '1.5em', 'padding': '10px', 'borderRadius': '5px',
+                        'marginTop': '10px'}),
+        html.Hr(),
 
-    html.Label("Fator de Correção de Agrupamento (F_group): "),
-    html.Div(id='out_amp_f_group', style={'display': 'inline-block', 'fontWeight': 'bold', 'color': '#00dd00'}),
-    html.Br(),
+        # --- Resultados Curto-Circuito ---
+        html.H4("Resultados: Suportabilidade (I²t)"),
+        html.Label("Energia do Curto-Circuito (I²t Falta): "),
+        html.Div(id='out_sc_fault_energy_a2s', style={'display': 'inline-block', 'fontWeight': 'bold'}),
+        html.Br(),
+        html.Label("Suportabilidade do Cabo (K²S²): "),
+        html.Div(id='out_sc_cable_withstand_a2s', style={'display': 'inline-block', 'fontWeight': 'bold'}),
+        html.Div(id='out_sc_result',
+                 style={'fontWeight': 'bold', 'fontSize': '1.5em', 'padding': '10px', 'borderRadius': '5px',
+                        'marginTop': '10px'}),
 
-    html.H3("Ampacidade Corrigida (A): "),
-    html.Div(id='out_amp_corrected',
-             style={'display': 'inline-block', 'fontWeight': 'bold', 'fontSize': '1.5em', 'color': '#00aaff'}),
+    ])
 ])
-# --- [FIM] NOVO Layout da Aba 5 ---
+# --- [FIM] Layout da Aba 6: Ampacidade de Cabos (MODIFICADO) ---
 
 # --- [INÍCIO] Layout da Aba 6: Saturação de TC (Com Gráfico) ---
 layout_ct_saturation = html.Div(className='module-container', children=[
@@ -453,3 +532,53 @@ layout_diff = html.Div(className='module-container', children=[
     ])
 ])
 # --- [FIM] NOVO Layout da Aba 7 ---
+
+# --- [INÍCIO] NOVO Layout da Aba 8: Cálculo de Inrush ---
+layout_inrush = html.Div(className='module-container', children=[
+    html.H2(children='Estimativa de Corrente de Inrush de Transformador'),
+    html.P("Calcula a corrente de magnetização (inrush) e o ponto (Iop, Ir) para análise no Módulo Diferencial (87)."),
+
+    # --- Entradas (Inputs) ---
+    html.H4("Dados do Transformador"),
+
+    html.Label("Potência do Transformador (kVA):"),
+    dcc.Input(id='inrush_kva', value='1000', type='number', className='DashInput'),
+    html.Br(), html.Br(),
+
+    html.Label("Tensão (kV - Lado da Energização):"),
+    dcc.Input(id='inrush_kv', value='13.8', type='number', className='DashInput'),
+    html.Br(), html.Br(),
+
+    html.Label("Múltiplo de Inrush (ex: 8 a 12):"),
+    dcc.Input(id='inrush_multiplier', value='10', type='number', className='DashInput'),
+    html.Br(), html.Br(),
+
+    html.Label("Fator de Restrição (ex: 0.5 para 2º Harmónico):"),
+    dcc.Input(id='inrush_restraint_factor', value='0.5', type='number', className='DashInput'),
+    html.Br(), html.Br(),
+
+    html.Button('Calcular Inrush', id='btn_calc_inrush', n_clicks=0, className='DashButton'),
+    html.Hr(),
+
+    # --- Saídas (Outputs) ---
+    html.H4("Resultados (Valores em p.u. da Corrente Nominal do Trafo)"),
+
+    html.Label("Corrente Nominal (In): "),
+    html.Div(id='out_inrush_in', style={'display': 'inline-block', 'fontWeight': 'bold', 'color': '#00dd00'}),
+    html.Br(),
+
+    html.Label("Corrente de Inrush de Pico (Ipeak): "),
+    html.Div(id='out_inrush_ipeak', style={'display': 'inline-block', 'fontWeight': 'bold', 'color': '#00dd00'}),
+    html.Br(),
+
+    html.H3("Ponto de Teste para o Módulo Diferencial (87):"),
+    html.Label("Corrente de Operação (Iop): "),
+    html.Div(id='out_inrush_iop',
+             style={'display': 'inline-block', 'fontWeight': 'bold', 'fontSize': '1.2em', 'color': '#00aaff'}),
+    html.Br(),
+
+    html.Label("Corrente de Restrição (Ir): "),
+    html.Div(id='out_inrush_ir',
+             style={'display': 'inline-block', 'fontWeight': 'bold', 'fontSize': '1.2em', 'color': '#00aaff'}),
+])
+# --- [FIM] NOVO Layout da Aba 8 ---

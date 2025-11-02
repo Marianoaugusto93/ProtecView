@@ -1,15 +1,17 @@
 # Ficheiro: run.py
-# (Adicionado o novo layout de Proteção Diferencial)
+# (Adicionado o novo layout de Cálculo de Inrush)
 
 from dash import dcc, html
 
 # Importa a app principal do app.py
 from app import app
 
+
+
 server = app.server
 # Importa as variáveis de layout do layouts.py
 from layouts import layout_home, layout_sym, layout_dist, layout_tcc, layout_fault_calc, layout_ampacity, \
-    layout_ct_saturation, layout_diff  # <-- ADICIONE O NOVO LAYOUT
+    layout_ct_saturation, layout_diff, layout_inrush  # <-- ADICIONE O NOVO LAYOUT
 # Importa os callbacks
 import callbacks.callbacks_sym
 import callbacks.callbacks_dist
@@ -18,6 +20,7 @@ import callbacks.callbacks_fault
 import callbacks.callbacks_amp
 import callbacks.callbacks_ct
 import callbacks.callbacks_diff
+import callbacks.callbacks_inrush
 
 # --- Definir Estilos das Abas com o método 'colors' ---
 TAB_COLORS = {
@@ -71,10 +74,15 @@ app.layout = html.Div(children=[
             layout_ct_saturation
         ], value='tab-ctsat'),
 
-        # --- [NOVO] Aba 8: Proteção Diferencial ---
+        # --- Aba 8: Proteção Diferencial ---
         dcc.Tab(label='Proteção Diferencial (87)', children=[
-            layout_diff  # <-- ADICIONE ESTA LINHA
+            layout_diff
         ], value='tab-diff'),
+
+        # --- [NOVO] Aba 9: Cálculo de Inrush ---
+        dcc.Tab(label='Cálculo de Inrush', children=[
+            layout_inrush  # <-- ADICIONE ESTA LINHA
+        ], value='tab-inrush'),
 
     ],
              value='tab-home',
