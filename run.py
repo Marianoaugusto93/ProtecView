@@ -1,17 +1,18 @@
 # Ficheiro: run.py
-# (Adicionado o novo layout de Cálculo de Inrush)
+# (Adicionado o novo layout de Proteção de Distribuição)
 
 from dash import dcc, html
 
 # Importa a app principal do app.py
 from app import app
 
-
-
 server = app.server
 # Importa as variáveis de layout do layouts.py
-from layouts import layout_home, layout_sym, layout_dist, layout_tcc, layout_fault_calc, layout_ampacity, \
-    layout_ct_saturation, layout_diff, layout_inrush  # <-- ADICIONE O NOVO LAYOUT
+from layouts import (
+    layout_home, layout_sym, layout_dist, layout_tcc,
+    layout_fault_calc, layout_ampacity, layout_ct_saturation,
+    layout_diff, layout_inrush, layout_dist_protection  # <-- ADICIONE O NOVO LAYOUT
+)
 # Importa os callbacks
 import callbacks.callbacks_sym
 import callbacks.callbacks_dist
@@ -21,6 +22,7 @@ import callbacks.callbacks_amp
 import callbacks.callbacks_ct
 import callbacks.callbacks_diff
 import callbacks.callbacks_inrush
+import callbacks.callbacks_dist_protection
 
 # --- Definir Estilos das Abas com o método 'colors' ---
 TAB_COLORS = {
@@ -32,8 +34,6 @@ TAB_COLORS = {
 # --- 2. Definir o Layout da Aplicação ---
 app.layout = html.Div(children=[
 
-    # O dcc.Store(id='zone-storage') foi REMOVIDO no rollback
-
     html.H1(children='ProtecView: Ferramentas de Análise de Sistemas Elétricos'),
 
     # --- Container Principal de Abas ---
@@ -41,17 +41,17 @@ app.layout = html.Div(children=[
 
         # --- Aba 1: Home ---
         dcc.Tab(label='Home', children=[
-            layout_home  # Usa a variável importada
+            layout_home
         ], value='tab-home'),
 
         # --- Aba 2: Componentes Simétricos ---
         dcc.Tab(label='Componentes Simétricos', children=[
-            layout_sym  # Usa a variável importada
+            layout_sym
         ], value='tab-sym'),
 
         # --- Aba 3: Proteção de Distância ---
         dcc.Tab(label='Proteção de Distância', children=[
-            layout_dist  # Usa a variável importada
+            layout_dist
         ], value='tab-dist'),
 
         # --- Aba 4: Cálculo de Faltas ---
@@ -79,10 +79,15 @@ app.layout = html.Div(children=[
             layout_diff
         ], value='tab-diff'),
 
-        # --- [NOVO] Aba 9: Cálculo de Inrush ---
+        # --- Aba 9: Cálculo de Inrush ---
         dcc.Tab(label='Cálculo de Inrush', children=[
-            layout_inrush  # <-- ADICIONE ESTA LINHA
+            layout_inrush
         ], value='tab-inrush'),
+
+        # --- [NOVO] Aba 10: Proteção de Distribuição ---
+        dcc.Tab(label='Proteção de Distribuição', children=[
+            layout_dist_protection  # <-- ADICIONE ESTA LINHA
+        ], value='tab-dist-prot'),
 
     ],
              value='tab-home',

@@ -1,6 +1,6 @@
 from dash import dcc, html
 
-# --- Layout da Aba 1: Home (MODIFICADO) ---
+# --- Layout da Aba 1: Home ---
 layout_home = html.Div(className='module-container', children=[
     html.H2('Bem-vindo ao ProtecView!'),
     html.P('Este é um conjunto de ferramentas de análise de sistemas elétricos de potência.'),
@@ -18,9 +18,9 @@ layout_home = html.Div(className='module-container', children=[
         html.A("protecview@eletrogrid.com.br", href="mailto:protecview@eletrogrid.com.br")
     ])
 ])
-# --- FIM DA MODIFICAÇÃO ---
-# --- [INÍCIO] Layout da Aba 2: Componentes Simétricos (MODIFICADO) ---
+# --- [FIM] Layout da Aba 1: Home ---
 
+# --- Layout da Aba 2: Componentes Simétricos ---
 layout_sym = html.Div(className='module-container', children=[
     html.H2(children='Calculador de Componentes Simétricos'),
 
@@ -97,9 +97,9 @@ layout_sym = html.Div(className='module-container', children=[
         html.Div(children=[dcc.Graph(id='sym_graph_out')], style={'width': '49%', 'display': 'inline-block'})
     ])
 ])
-# --- [FIM] Layout da Aba 2: Componentes Simétricos (MODIFICADO) ---
+# --- [FIM] Layout da Aba 2: Componentes Simétricos ---
 
-# --- [INÍCIO] Layout da Aba 3: Proteção de Distância (Revertido para Estático) ---
+# --- Layout da Aba 3: Proteção de Distância  ---
 layout_dist = html.Div(className='module-container', children=[
     html.H2(children='Visualizador de Zonas de Proteção de Distância'),
 
@@ -154,12 +154,9 @@ layout_dist = html.Div(className='module-container', children=[
     html.Hr(),
     dcc.Graph(id='distance-plot-graph')
 ])
-# --- [FIM] Layout da Aba 3: Proteção de Distância (Revertido para Estático) ---
+# --- [FIM] Layout da Aba 3:  ---
 
 # --- Layout da Aba 4: Curvas TCC ---
-# --- [INÍCIO] Layout da Aba 4: Curvas TCC (MODIFICADO) ---
-
-# (a variável tcc_curve_options fica igual)
 tcc_curve_options = [
     {'label': 'IEC Standard Inverse', 'value': 'IEC Standard Inverse'},
     {'label': 'IEC Very Inverse', 'value': 'IEC Very Inverse'},
@@ -168,8 +165,7 @@ tcc_curve_options = [
     {'label': 'IEEE Very Inverse (VI)', 'value': 'IEEE Very Inverse'},
     {'label': 'IEEE Extremely Inverse (EI)', 'value': 'IEEE Extremely Inverse'},
 ]
-
-# --- [INÍCIO] Layout da Aba 5: Curvas TCC (MODIFICADO para incluir Motor) ---
+# --- Layout da Aba 4: Curvas TCC  ---
 layout_tcc = html.Div(className='module-container', children=[
     html.H2(children='Curvas de Característica Tempo-Corrente (TCC)'),
     html.P("Coordene dispositivos de proteção (relés, fusíveis) e analise a partida de motores."),
@@ -242,9 +238,9 @@ layout_tcc = html.Div(className='module-container', children=[
         dcc.Graph(id='tcc-graph')
     ])
 ])
-# --- [FIM] Layout da Aba 5: Curvas TCC (MODIFICADO) ---
+# --- [FIM] Layout da Aba 4 ---
 
-# --- [INÍCIO] NOVO Layout da Aba 4: Cálculo de Faltas ---
+# --- Layout da Aba 5: Cálculo de Faltas ---
 layout_fault_calc = html.Div(className='module-container', children=[
     html.H2(children='Calculadora de Curto-Circuito (Assimétrico)'),
     html.P(
@@ -294,8 +290,9 @@ layout_fault_calc = html.Div(className='module-container', children=[
     html.Label("Corrente Fase-Fase (LL): "),
     html.Div(id='out_fault_ll', style={'display': 'inline-block', 'fontWeight': 'bold'}),
 ])
-# --- [FIM] NOVO Layout da Aba 4 ---
-# --- [INÍCIO] Layout da Aba 6: Ampacidade de Cabos (MODIFICADO) ---
+# --- [FIM] Layout da Aba 5 ---
+
+# --- Layout da Aba 6: Ampacidade de Cabos  ---
 layout_ampacity = html.Div(className='module-container', children=[
     html.H2(children='Dimensionamento de Cabos (Ampacidade, VD, I²t)'),
 
@@ -417,9 +414,9 @@ layout_ampacity = html.Div(className='module-container', children=[
 
     ])
 ])
-# --- [FIM] Layout da Aba 6: Ampacidade de Cabos (MODIFICADO) ---
+# --- [FIM] Layout da Aba 6 ---
 
-# --- [INÍCIO] Layout da Aba 6: Saturação de TC (Com Gráfico) ---
+# --- Layout da Aba 6: Saturação de TC (Com Gráfico) ---
 layout_ct_saturation = html.Div(className='module-container', children=[
     html.H2(children='Calculadora de Saturação de TC (ANSI/IEEE)'),
     html.P("Verifica se um TC irá saturar com base na corrente de falta e na carga (burden)."),
@@ -477,9 +474,9 @@ layout_ct_saturation = html.Div(className='module-container', children=[
     # --- [NOVO] Gráfico de Saturação ---
     dcc.Graph(id='ctsat_graph')
 ])
-# --- [FIM] NOVO Layout da Aba 6 ---
+# --- [FIM] Layout da Aba 6 ---
 
-# --- [INÍCIO] Layout da Aba 7: Proteção Diferencial (MODIFICADO) ---
+# --- Layout da Aba 7: Proteção Diferencial ---
 layout_diff = html.Div(className='module-container', children=[
     html.H2(children='Visualizador de Proteção Diferencial (ANSI 87)'),
     html.P("Plota a curva de restrição (slope) de um relé diferencial e pontos de operação de teste."),
@@ -531,9 +528,9 @@ layout_diff = html.Div(className='module-container', children=[
         dcc.Graph(id='diff_graph')
     ])
 ])
-# --- [FIM] NOVO Layout da Aba 7 ---
+# --- [FIM] Layout da Aba 7 ---
 
-# --- [INÍCIO] NOVO Layout da Aba 8: Cálculo de Inrush ---
+# --- Layout da Aba 8: Cálculo de Inrush ---
 layout_inrush = html.Div(className='module-container', children=[
     html.H2(children='Estimativa de Corrente de Inrush de Transformador'),
     html.P("Calcula a corrente de magnetização (inrush) e o ponto (Iop, Ir) para análise no Módulo Diferencial (87)."),
@@ -581,4 +578,49 @@ layout_inrush = html.Div(className='module-container', children=[
     html.Div(id='out_inrush_ir',
              style={'display': 'inline-block', 'fontWeight': 'bold', 'fontSize': '1.2em', 'color': '#00aaff'}),
 ])
-# --- [FIM] NOVO Layout da Aba 8 ---
+# --- [FIM] Layout da Aba 8 ---
+
+# --- Layout da Aba 9: Proteção de Distribuição  ---
+layout_dist_protection = html.Div(className='module-container', children=[
+    html.H2(children='Coordenação de Proteção de Distribuição (Fusíveis/Religadores)'),
+    html.P("Adicione e coordene curvas de fusíveis (IEC/ANSI K, T) e sequências de religadores."),
+
+    # Armazenamento de Estado (Div Oculto)
+    html.Div(id='dist_curve_storage', children='[]', style={'display': 'none'}),  # Guarda um JSON
+
+    # --- Coluna da Esquerda: Adicionar Curvas ---
+    html.Div(style={'width': '45%', 'display': 'inline-block', 'verticalAlign': 'top', 'paddingRight': '2%'}, children=[
+
+        html.H4("Adicionar Dispositivo"),
+        html.Label("Tipo de Dispositivo:"),
+        dcc.Dropdown(
+            id='dist_add_type_dropdown',
+            options=[
+                {'label': 'Fusível (Ex: Tipo K, T)', 'value': 'fuse'},
+                {'label': 'Religador (Curva IEC/IEEE)', 'value': 'recloser'},
+            ],
+            value='fuse',
+            clearable=False,
+            className='DashDropdown'
+        ),
+        html.Br(),
+        html.Button('Adicionar Curva', id='btn_add_dist_curve', n_clicks=0, className='DashButton'),
+
+        # --- [NOVO] Botão de Plotar ---
+        html.Button('Plotar Gráfico', id='btn_plot_dist_curves', n_clicks=0, className='DashButton',
+                    style={'marginLeft': '10px', 'backgroundColor': '#28a745'}),
+        html.Hr(),
+
+        # --- Container onde as curvas dinâmicas irão aparecer ---
+        html.H4("Dispositivos no Gráfico:"),
+        html.Div(id='dynamic_dist_curve_container', children=[]),
+
+    ]),
+
+    # --- Coluna da Direita: Gráfico ---
+    html.Div(style={'width': '53%', 'display': 'inline-block', 'verticalAlign': 'top'}, children=[
+        html.H4("Gráfico de Coordenação (TCC)"),
+        dcc.Graph(id='dist_tcc_graph')
+    ])
+])
+# --- [FIM] Layout da Aba 9 ---
