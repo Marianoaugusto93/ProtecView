@@ -1,0 +1,253 @@
+/* Ficheiro: assets/custom_styles.css (Correção Final V2) */
+
+/* Estilos Globais */
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* --- Variáveis de Tema --- */
+.dark-theme {
+    --bg-color: #2a2a2a;
+    --text-color: #f0f0f0;
+    --card-bg: #3c3c3c;
+    --border-color: #555;
+    --input-bg: #4a4a4a;
+    --input-text: #f0f0f0;
+    --button-bg: #00aaff;
+    --button-text: #ffffff;
+    --button-hover: #0088cc;
+    --tab-bg: #2a2a2a;
+    --tab-text: #cccccc;
+    --tab-active-bg: #3c3c3c;
+    --tab-active-text: #00aaff;
+    --header-bg: #1e1e1e;
+    --logo-filter: none;
+    --plot-grid-color: rgba(255, 255, 255, 0.3);
+    --plot-text-color: var(--text-color);
+}
+.light-theme {
+    --bg-color: #f0f0f0;
+    --text-color: #333333;
+    --card-bg: #ffffff;
+    --border-color: #cccccc;
+    --input-bg: #e0e0e0;
+    --input-text: #333333;
+    --button-bg: #007bff;
+    --button-text: #ffffff;
+    --button-hover: #0056b3;
+    --tab-bg: #e0e0e0;
+    --tab-text: #666666;
+    --tab-active-bg: #ffffff;
+    --tab-active-text: #007bff;
+    --header-bg: #ffffff;
+    --logo-filter: invert(1);
+    --plot-grid-color: rgba(0, 0, 0, 0.1);
+    --plot-text-color: var(--text-color);
+}
+
+/* Aplica as variáveis CSS ao container da app */
+#app-container {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    min-height: 100vh;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+/* Estilos do Cabeçalho */
+.header-container {
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: var(--header-bg);
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 20px;
+}
+.header-logo {
+    height: 50px;
+    margin-right: 15px;
+    filter: var(--logo-filter);
+}
+.header-title {
+    margin: 0;
+    color: var(--text-color) !important;
+    flex-grow: 1;
+}
+
+/* Estilos para os Containers de Módulo (cards) */
+.dark-theme .module-container {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+    color: var(--text-color);
+}
+.light-theme .module-container {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+    color: var(--text-color);
+}
+.module-container h2, .module-container h4, .module-container h5, .module-container label, .module-container p {
+    color: var(--text-color) !important;
+}
+.module-container {
+    border: 1px solid;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s, color 0.3s;
+}
+
+
+/* --- [CORREÇÃO] Estilos dos Inputs e Dropdowns --- */
+/* (Removemos os estilos 'hard-coded' e usamos variáveis) */
+
+/* Layout Base (sem cor) */
+.DashInput, .DashDropdown .Select-control {
+    border-radius: 4px;
+    padding: 8px;
+    margin-bottom: 10px;
+    width: calc(100% - 18px);
+    background-color: var(--input-bg); /* <-- USA VARIÁVEL */
+    color: var(--input-text);         /* <-- USA VARIÁVEL */
+    border: 1px solid var(--border-color); /* <-- USA VARIÁVEL */
+}
+.DashInput::placeholder { color: #999; }
+
+/* Cores de Tema para Opções de Dropdown */
+.dark-theme .DashDropdown .Select-menu-outer { background-color: #333; border: 1px solid var(--border-color); }
+.dark-theme .DashDropdown .Select-option { background-color: #333; color: #f0f0f0; border-bottom: 1px solid #444; }
+.dark-theme .DashDropdown .Select-option.is-focused { background-color: #00aaff; color: #ffffff; }
+
+.light-theme .DashDropdown .Select-menu-outer { background-color: #ffffff; border: 1px solid var(--border-color); }
+.light-theme .DashDropdown .Select-option { background-color: #ffffff; color: #333333; border-bottom: 1px solid #dddddd; }
+.light-theme .DashDropdown .Select-option.is-focused { background-color: #007bff; color: #ffffff; }
+
+/* --- [NOVA REGRA] --- */
+/* Força a cor do TEXTO SELECIONADO no dropdown */
+.dark-theme .Select-value-label {
+    color: var(--input-text) !important;
+}
+.light-theme .Select-value-label {
+    color: var(--input-text) !important;
+}
+/* --- [FIM DA NOVA REGRA] --- */
+
+
+/* Estilos de botões */
+.DashButton {
+    background-color: var(--button-bg);
+    color: var(--button-text);
+    border: none;
+    border-radius: 4px;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.2s ease-in-out;
+}
+.DashButton:hover { background-color: var(--button-hover); }
+
+/* Estilos das abas (Dash Core Components) */
+.dash-tabs-container .dash-tab-value-tab-home,
+.dash-tabs-container .dash-tab-value-tab-sym,
+.dash-tabs-container .dash-tab-value-tab-dist,
+.dash-tabs-container .dash-tab-value-tab-fault,
+.dash-tabs-container .dash-tab-value-tab-tcc,
+.dash-tabs-container .dash-tab-value-tab-amp,
+.dash-tabs-container .dash-tab-value-tab-ctsat,
+.dash-tabs-container .dash-tab-value-tab-diff,
+.dash-tabs-container .dash-tab-value-tab-inrush,
+.dash-tabs-container .dash-tab-value-tab-dist-prot {
+    background-color: var(--tab-bg);
+    color: var(--tab-text);
+    border-bottom: 2px solid var(--tab-bg);
+    transition: background-color 0.3s, color 0.3s;
+}
+.dash-tabs-container .dash-tab--selected {
+    background-color: var(--tab-active-bg);
+    color: var(--tab-active-text);
+    border-bottom: 2px solid var(--tab-active-text);
+}
+.dash-tabs-content {
+    background: none !important;
+    border: none !important;
+}
+
+/* --- Estilos para Gráficos Plotly --- */
+.plot-container {
+    background-color: transparent !important;
+}
+.plot-container .svg-container text {
+    fill: var(--text-color) !important;
+}
+.plot-container .svg-container .grid path {
+    stroke: var(--plot-grid-color) !important;
+}
+.plot-container .svg-container .axis-baseline,
+.plot-container .svg-container .xtick line,
+.plot-container .svg-container .ytick line {
+    stroke: var(--plot-text-color) !important;
+}
+
+/* --- Tema Switch --- */
+.theme-switch-container {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+}
+.theme-switch-label {
+    margin-right: 10px;
+    color: var(--text-color) !important;
+    font-weight: normal;
+}
+.theme-switch input[type="checkbox"] { display: none; }
+.theme-switch .slider {
+    position: relative;
+    cursor: pointer;
+    width: 40px;
+    height: 20px;
+    background-color: #ccc;
+    border-radius: 20px;
+    transition: 0.4s;
+}
+.theme-switch .slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    border-radius: 50%;
+    transition: 0.4s;
+}
+.theme-switch input:checked + .slider { background-color: var(--button-bg); }
+.theme-switch input:checked + .slider:before { transform: translateX(20px); }
+
+/* --- Otimização para Mobile (Media Queries) --- */
+@media (max-width: 768px) {
+    .header-container {
+        flex-direction: column;
+        text-align: center;
+        padding: 10px;
+    }
+    .header-logo {
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+    .theme-switch-container {
+        margin-left: 0;
+        margin-top: 10px;
+    }
+    .module-container > div[style*="inline-block"] {
+        width: 100% !important;
+        padding-right: 0 !important;
+    }
+    .DashInput, .DashDropdown .Select-control, .DashDropdown .Select-menu-outer {
+        width: 100%;
+    }
+    #app-container {
+        padding: 10px;
+        box-sizing: border-box;
+    }
+}

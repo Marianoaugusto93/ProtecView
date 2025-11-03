@@ -1,17 +1,18 @@
 # Ficheiro: run.py
-# (Adicionado o novo layout de Proteção de Distribuição)
+# (Revertido para a correção final no CSS)
 
-from dash import dcc, html
+from dash import dcc, html, Input, Output, State
 
 # Importa a app principal do app.py
 from app import app
 
 server = app.server
+
 # Importa as variáveis de layout do layouts.py
 from layouts import (
     layout_home, layout_sym, layout_dist, layout_tcc,
     layout_fault_calc, layout_ampacity, layout_ct_saturation,
-    layout_diff, layout_inrush, layout_dist_protection  # <-- ADICIONE O NOVO LAYOUT
+    layout_diff, layout_inrush, layout_dist_protection
 )
 # Importa os callbacks
 import callbacks.callbacks_sym
@@ -26,75 +27,67 @@ import callbacks.callbacks_dist_protection
 
 # --- Definir Estilos das Abas com o método 'colors' ---
 TAB_COLORS = {
-    "background": "#2a2a2a",  # Cor de fundo da aba NÃO selecionada
-    "primary": "#00aaff",  # Cor do texto da aba SELECIONADA
-    "border": "#4a4a4a"  # Cor da borda inferior
+    "background": "var(--tab-bg)",
+    "primary": "var(--tab-active-text)",
+    "border": "var(--tab-active-text)"
 }
 
 # --- 2. Definir o Layout da Aplicação ---
-app.layout = html.Div(children=[
+app.layout = html.Div(id='app-container', className='dark-theme', children=[
 
-    html.H1(children='ProtecView: Ferramentas de Análise de Sistemas Elétricos'),
+    # --- Cabeçalho com Logo e Título ---
+    html.Div(className='header-container', children=[
+        html.Img(src=app.get_asset_url('logo_protecview.png'), className='header-logo'),
+        html.H1(children='ProtecView: Ferramentas de Análise de Sistemas Elétricos', className='header-title'),
+
+        # --- Theme Switch ---
+        html.Div(className='theme-switch-container', children=[
+            html.Label("Modo Claro/Escuro:", className='theme-switch-label'),
+            html.Label(className='theme-switch', children=[
+                dcc.Checklist(
+                    id='theme-toggle-switch',
+                    options=[{'label': '', 'value': 'dark'}],
+                    value=['dark'],
+                    inputStyle={"display": "none"}
+                ),
+                html.Span(className='slider')
+            ])
+        ])
+    ]),  # Fim do Cabeçalho
 
     # --- Container Principal de Abas ---
     dcc.Tabs(id="main-tabs", children=[
-
-        # --- Aba 1: Home ---
-        dcc.Tab(label='Home', children=[
-            layout_home
-        ], value='tab-home'),
-
-        # --- Aba 2: Componentes Simétricos ---
-        dcc.Tab(label='Componentes Simétricos', children=[
-            layout_sym
-        ], value='tab-sym'),
-
-        # --- Aba 3: Proteção de Distância ---
-        dcc.Tab(label='Proteção de Distância', children=[
-            layout_dist
-        ], value='tab-dist'),
-
-        # --- Aba 4: Cálculo de Faltas ---
-        dcc.Tab(label='Cálculo de Faltas', children=[
-            layout_fault_calc
-        ], value='tab-fault'),
-
-        # --- Aba 5: Curvas TCC ---
-        dcc.Tab(label='Curvas TCC', children=[
-            layout_tcc
-        ], value='tab-tcc'),
-
-        # --- Aba 6: Ampacidade ---
-        dcc.Tab(label='Ampacidade de Cabos', children=[
-            layout_ampacity
-        ], value='tab-amp'),
-
-        # --- Aba 7: Saturação de TC ---
-        dcc.Tab(label='Saturação de TC', children=[
-            layout_ct_saturation
-        ], value='tab-ctsat'),
-
-        # --- Aba 8: Proteção Diferencial ---
-        dcc.Tab(label='Proteção Diferencial (87)', children=[
-            layout_diff
-        ], value='tab-diff'),
-
-        # --- Aba 9: Cálculo de Inrush ---
-        dcc.Tab(label='Cálculo de Inrush', children=[
-            layout_inrush
-        ], value='tab-inrush'),
-
-        # --- [NOVO] Aba 10: Proteção de Distribuição ---
-        dcc.Tab(label='Proteção de Distribuição', children=[
-            layout_dist_protection  # <-- ADICIONE ESTA LINHA
-        ], value='tab-dist-prot'),
-
+        # ... (Todas as tuas dcc.Tab... )
+        dcc.Tab(label='Home', children=[layout_home], value='tab-home'),
+        dcc.Tab(label='Componentes Simétricos', children=[layout_sym], value='tab-sym'),
+        dcc.Tab(label='Proteção de Distância', children=[layout_dist], value='tab-dist'),
+        dcc.Tab(label='Cálculo de Faltas', children=[layout_fault_calc], value='tab-fault'),
+        dcc.Tab(label='Curvas TCC', children=[layout_tcc], value='tab-tcc'),
+        dcc.Tab(label='Ampacidade de Cabos', children=[layout_ampacity], value='tab-amp'),
+        dcc.Tab(label='Saturação de TC', children=[layout_ct_saturation], value='tab-ctsat'),
+        dcc.Tab(label='Proteção Diferencial (87)', children=[layout_diff], value='tab-diff'),
+        dcc.Tab(label='Cálculo de Inrush', children=[layout_inrush], value='tab-inrush'),
+        dcc.Tab(label='Proteção de Distribuição', children=[layout_dist_protection], value='tab-dist-prot'),
     ],
              value='tab-home',
              colors=TAB_COLORS
+             # A linha 'content_style' foi REMOVIDA
              ),
 
 ])  # Fim do Layout
+
+
+# --- Callback para Alternar o Tema ---
+@app.callback(
+    Output('app-container', 'className'),
+    Input('theme-toggle-switch', 'value')
+)
+def update_theme(value):
+    if 'dark' in value:
+        return 'dark-theme'
+    else:
+        return 'light-theme'
+
 
 # --- 4. Executar o Servidor (PARA DESENVOLVIMENTO LOCAL) ---
 if __name__ == '__main__':

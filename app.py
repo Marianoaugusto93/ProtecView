@@ -1,13 +1,15 @@
 # Ficheiro: app.py
+# (Corrigido)
 
-import dash
+from dash import Dash
 
-# 1. Inicializa a aplicação
-app = dash.Dash(__name__)
+# Dash carregará automaticamente qualquer ficheiro .css na pasta 'assets'
+external_stylesheets = ['https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap']
 
-# 2. CONFIGURAÇÃO CRÍTICA
-# Esta linha diz ao Dash para não verificar os IDs dos callbacks
-# no momento em que os ficheiros são importados.
-# Isto é essencial para aplicações com múltiplos ficheiros (como a nossa),
-# onde o layout é definido num ficheiro e os callbacks noutro.
-app.config.suppress_callback_exceptions = True
+app = Dash(__name__, external_stylesheets=external_stylesheets,
+           suppress_callback_exceptions=True,
+           meta_tags=[{'name': 'viewport', 'content': 'width=device-width, initial-scale=1.0'}]
+           # A linha 'html_classes' foi removida
+        )
+
+server = app.server

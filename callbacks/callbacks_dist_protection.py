@@ -1,19 +1,15 @@
 # Ficheiro: callbacks/callbacks_dist_protection.py
-# (Com lógica de plotagem simplificada e corrigida)
-
+# (Removido template="plotly_dark")
 from dash import dcc, html, Input, Output, State, ALL, MATCH, ctx, no_update
 import plotly.graph_objects as go
 from app import app
 import json
 import numpy as np
-
-# Importa as funções de cálculo dos nossos ficheiros utils
 from utils.utils_dist_protection import calculate_fuse_time
 from utils.utils_tcc import get_tcc_time
 
 
-# --- Funções Auxiliares (Layouts Dinâmicos) ---
-# (As funções create_fuse_controls e create_recloser_controls permanecem iguais)
+# ... (Funções create_fuse_controls e create_recloser_controls ficam iguais) ...
 def create_fuse_controls(index):
     fuse_ratings = [6, 10, 15, 25, 40, 65, 100, 140, 200]
     return html.Div(
@@ -78,9 +74,7 @@ def create_recloser_controls(index):
     )
 
 
-# --- Callbacks Principais ---
-
-# Callback 1: Adicionar Curva (Fusível ou Religador)
+# ... (Callbacks add_dist_curve, remove_dist_curve, render_dist_controls ficam iguais) ...
 @app.callback(
     Output('dist_curve_storage', 'children'),
     Input('btn_add_dist_curve', 'n_clicks'),
@@ -102,7 +96,6 @@ def add_dist_curve(n_clicks, curve_type, storage_json):
     return json.dumps(storage_list)
 
 
-# Callback 2: Remover Curva
 @app.callback(
     Output('dist_curve_storage', 'children', allow_duplicate=True),
     Input({'type': 'remove-dist-curve', 'index': ALL}, 'n_clicks'),
@@ -122,7 +115,6 @@ def remove_dist_curve(n_clicks_list, storage_json):
     return json.dumps(new_list)
 
 
-# Callback 3: Renderizar os Controles das Curvas
 @app.callback(
     Output('dynamic_dist_curve_container', 'children'),
     Input('dist_curve_storage', 'children')
@@ -141,23 +133,18 @@ def render_dist_controls(storage_json):
     return children
 
 
-# --- [INÍCIO DA CORREÇÃO] ---
-# Callback 4: Plotar o Gráfico (Lógica refeita e simplificada)
 @app.callback(
     Output('dist_tcc_graph', 'figure'),
     Input('btn_plot_dist_curves', 'n_clicks'),
     [
-        # States dos Fusíveis (coleta TODOS)
         State({'type': 'fuse-type', 'index': ALL}, 'value'),
         State({'type': 'fuse-rating', 'index': ALL}, 'value'),
-        # States dos Religadores (coleta TODOS)
         State({'type': 'recloser-fast-curve', 'index': ALL}, 'value'),
         State({'type': 'recloser-fast-pickup', 'index': ALL}, 'value'),
         State({'type': 'recloser-fast-tds', 'index': ALL}, 'value'),
         State({'type': 'recloser-slow-curve', 'index': ALL}, 'value'),
         State({'type': 'recloser-slow-pickup', 'index': ALL}, 'value'),
         State({'type': 'recloser-slow-tds', 'index': ALL}, 'value'),
-        # State do storage para saber a ordem e o tipo
         State('dist_curve_storage', 'children')
     ]
 )
@@ -166,10 +153,8 @@ def plot_dist_tcc_graph(n_clicks,
                         rec_fast_curves, rec_fast_pickups, rec_fast_tds,
                         rec_slow_curves, rec_slow_pickups, rec_slow_tds,
                         storage_json):
+    # [CORREÇÃO] Removido template="plotly_dark", plot_bgcolor, paper_bgcolor
     fig = go.Figure(layout=go.Layout(
-        template="plotly_dark",
-        plot_bgcolor='rgba(0,0,0,0)',
-        paper_bgcolor='rgba(0,0,0,0)',
         xaxis_type="log", yaxis_type="log",
         title="Coordenação de Distribuição",
         xaxis_title="Corrente (A)",
@@ -180,78 +165,45 @@ def plot_dist_tcc_graph(n_clicks,
         fig.update_layout(title="Adicione dispositivos e clique em 'Plotar Gráfico'")
         return fig
 
+    # ... (resto da função de plotagem) ...
     try:
         storage_list = json.loads(storage_json)
     except Exception:
         storage_list = []
-
-    # Gera um range de correntes
-    # Começa em 10A (log10(10)=1)
     currents = np.logspace(1, np.log10(20000), num=200)
-
-    # --- LÓGICA SIMPLIFICADA ---
-    # Contadores para as listas de state (ALL)
-    # As listas (fuse_types, fuse_ratings, etc.) são garantidas
-    # pelo Dash de estarem na ordem do DOM (ordem em que aparecem no ecrã).
-    fuse_i = 0
+    fuse_i = 0;
     rec_i = 0
-
-    # Itera sobre a lista do storage para desenhar na ordem correta
     for curve in storage_list:
         if curve['type'] == 'fuse':
-            # Se não houver mais fusíveis na lista de state, pula
-            if fuse_i >= len(fuse_types):
-                continue
-
-            f_type = fuse_types[fuse_i]
+            if fuse_i >= len(fuse_types): continue
+            f_type = fuse_types[fuse_i];
             f_rating = fuse_ratings[fuse_i]
-
-            # (Verificação de segurança)
             if f_type is None or f_rating is None:
-                fuse_i += 1
+                fuse_i += 1;
                 continue
-
-            # Calcula os tempos de fusão e eliminação
             t_melt = [calculate_fuse_time(c, f_type, f_rating)[0] for c in currents]
             t_clear = [calculate_fuse_time(c, f_type, f_rating)[1] for c in currents]
-
-            # Plota as duas curvas (Melt e Clear)
             fig.add_trace(
                 go.Scatter(x=currents, y=t_melt, mode='lines', line=dict(color='yellow', width=2, dash='dash'),
                            name=f"Fusível {f_rating}{f_type} (Melt)"))
             fig.add_trace(go.Scatter(x=currents, y=t_clear, mode='lines', line=dict(color='yellow', width=2),
                                      name=f"Fusível {f_rating}{f_type} (Clear)"))
-
             fuse_i += 1
-
         elif curve['type'] == 'recloser':
-            # Se não houver mais religadores na lista de state, pula
-            if rec_i >= len(rec_fast_curves):
-                continue
-
-            # Obtém os dados do religador
-            fast_curve = rec_fast_curves[rec_i]
-            fast_pickup = float(rec_fast_pickups[rec_i])
+            if rec_i >= len(rec_fast_curves): continue
+            fast_curve = rec_fast_curves[rec_i];
+            fast_pickup = float(rec_fast_pickups[rec_i]);
             fast_tds = float(rec_fast_tds[rec_i])
-            slow_curve = rec_slow_curves[rec_i]
-            slow_pickup = float(rec_slow_pickups[rec_i])
+            slow_curve = rec_slow_curves[rec_i];
+            slow_pickup = float(rec_slow_pickups[rec_i]);
             slow_tds = float(rec_slow_tds[rec_i])
-
-            # Calcula os tempos (reutilizando a função do Módulo TCC)
             t_fast = [get_tcc_time(c, fast_pickup, fast_tds, fast_curve) for c in currents]
             t_slow = [get_tcc_time(c, slow_pickup, slow_tds, slow_curve) for c in currents]
-
-            # Plota as duas curvas (Rápida e Lenta)
             fig.add_trace(go.Scatter(x=currents, y=t_fast, mode='lines', line=dict(color='cyan', width=2, dash='dash'),
                                      name=f"Religador {curve['id']} (Rápida)"))
             fig.add_trace(go.Scatter(x=currents, y=t_slow, mode='lines', line=dict(color='cyan', width=2),
                                      name=f"Religador {curve['id']} (Lenta)"))
-
             rec_i += 1
-    # --- FIM DA LÓGICA SIMPLIFICADA ---
-
     fig.update_xaxes(range=[np.log10(10), np.log10(20000)])
     fig.update_yaxes(range=[np.log10(0.01), np.log10(1000)])
-
     return fig
-# --- [FIM DA CORREÇÃO] ---

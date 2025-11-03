@@ -1,12 +1,17 @@
 # Ficheiro: utils/utils_sym.py
+# (Removido template="plotly_dark" da função)
+
 import numpy as np
 import plotly.graph_objects as go
+
 
 def create_phasor_diagram(phasors, colors, title):
     """
     Cria um diagrama de fasores polar usando Plotly.
     """
-    fig = go.Figure(layout=go.Layout(template="plotly_dark", title=title))
+    # [CORREÇÃO] Removido template="plotly_dark"
+    fig = go.Figure(layout=go.Layout(title=title))
+
     max_magnitude = 0
     if not phasors:
         return fig
@@ -33,13 +38,12 @@ def create_phasor_diagram(phasors, colors, title):
 
     fig.update_layout(
         showlegend=False,
-        plot_bgcolor='rgba(0,0,0,0)',
-        paper_bgcolor='rgba(0,0,0,0)',
+        # [CORREÇÃO] Removido plot_bgcolor, paper_bgcolor
+        # (O CSS vai tratar disto)
         polar=dict(
-            bgcolor='rgba(42, 42, 42, 0.8)',
-            radialaxis=dict(visible=True, range=[0, max_magnitude * 1.3], showline=False,
-                            gridcolor='rgba(255, 255, 255, 0.3)'),
-            angularaxis=dict(direction="clockwise", rotation=0, gridcolor='rgba(255, 255, 255, 0.3)')
+            # O CSS vai tratar das cores da grelha e do fundo
+            radialaxis=dict(visible=True, range=[0, max_magnitude * 1.3], showline=False),
+            angularaxis=dict(direction="clockwise", rotation=0)
         ),
         margin=dict(l=40, r=40, t=80, b=40)
     )
