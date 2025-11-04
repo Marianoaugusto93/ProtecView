@@ -137,23 +137,32 @@ def render_dist_controls(storage_json):
     Output('dist_tcc_graph', 'figure'),
     Input('btn_plot_dist_curves', 'n_clicks'),
     [
+        # Fuse states
         State({'type': 'fuse-type', 'index': ALL}, 'value'),
+        State({'type': 'fuse-type', 'index': ALL}, 'id'),
         State({'type': 'fuse-rating', 'index': ALL}, 'value'),
+        State({'type': 'fuse-rating', 'index': ALL}, 'id'),
+        # Recloser states
         State({'type': 'recloser-fast-curve', 'index': ALL}, 'value'),
+        State({'type': 'recloser-fast-curve', 'index': ALL}, 'id'),
         State({'type': 'recloser-fast-pickup', 'index': ALL}, 'value'),
         State({'type': 'recloser-fast-tds', 'index': ALL}, 'value'),
         State({'type': 'recloser-slow-curve', 'index': ALL}, 'value'),
         State({'type': 'recloser-slow-pickup', 'index': ALL}, 'value'),
         State({'type': 'recloser-slow-tds', 'index': ALL}, 'value'),
+        # Storage
         State('dist_curve_storage', 'children')
-    ]
+    ],
+    prevent_initial_call=True
 )
 def plot_dist_tcc_graph(n_clicks,
-                        fuse_types, fuse_ratings,
-                        rec_fast_curves, rec_fast_pickups, rec_fast_tds,
-                        rec_slow_curves, rec_slow_pickups, rec_slow_tds,
+                        # Fuse args
+                        fuse_types_val, fuse_type_ids, fuse_ratings_val, fuse_rating_ids,
+                        # Recloser args
+                        rec_fast_curves_val, recloser_ids, rec_fast_pickups_val, rec_fast_tds_val,
+                        rec_slow_curves_val, rec_slow_pickups_val, rec_slow_tds_val,
+                        # Storage arg
                         storage_json):
-    # [CORREÇÃO] Removido template="plotly_dark", plot_bgcolor, paper_bgcolor
     fig = go.Figure(layout=go.Layout(
         xaxis_type="log", yaxis_type="log",
         title="Coordenação de Distribuição",
@@ -165,45 +174,76 @@ def plot_dist_tcc_graph(n_clicks,
         fig.update_layout(title="Adicione dispositivos e clique em 'Plotar Gráfico'")
         return fig
 
-    # ... (resto da função de plotagem) ...
     try:
         storage_list = json.loads(storage_json)
-    except Exception:
+    except (TypeError, json.JSONDecodeError):
         storage_list = []
+
     currents = np.logspace(1, np.log10(20000), num=200)
-    fuse_i = 0;
-    rec_i = 0
-    for curve in storage_list:
-        if curve['type'] == 'fuse':
-            if fuse_i >= len(fuse_types): continue
-            f_type = fuse_types[fuse_i];
-            f_rating = fuse_ratings[fuse_i]
+
+    # Criar mapeamentos de ID para valores de forma robusta
+    fuse_type_map = {f_id['index']: val for f_id, val in zip(fuse_type_ids, fuse_types_val)}
+    fuse_rating_map = {f_id['index']: val for f_id, val in zip(fuse_rating_ids, fuse_ratings_val)}
+
+    # Mapeamento para religadores
+    # Assumindo que os IDs de todos os componentes de um religador são os mesmos.
+    # Usaremos recloser_ids como a fonte da verdade para os índices.
+    recloser_map = {}
+
+    # Criar dicionários de mapeamento para cada propriedade do religador
+    fast_curve_map = {r_id['index']: val for r_id, val in zip(recloser_ids, rec_fast_curves_val)}
+    fast_pickup_map = {r_id['index']: val for r_id, val in zip(recloser_ids, rec_fast_pickups_val)}
+    fast_tds_map = {r_id['index']: val for r_id, val in zip(recloser_ids, rec_fast_tds_val)}
+    slow_curve_map = {r_id['index']: val for r_id, val in zip(recloser_ids, rec_slow_curves_val)}
+    slow_pickup_map = {r_id['index']: val for r_id, val in zip(recloser_ids, rec_slow_pickups_val)}
+    slow_tds_map = {r_id['index']: val for r_id, val in zip(recloser_ids, rec_slow_tds_val)}
+
+    for r_id_dict in recloser_ids:
+        idx = r_id_dict['index']
+        try:
+            recloser_map[idx] = {
+                'fast_curve': fast_curve_map.get(idx),
+                'fast_pickup': float(fast_pickup_map.get(idx)),
+                'fast_tds': float(fast_tds_map.get(idx)),
+                'slow_curve': slow_curve_map.get(idx),
+                'slow_pickup': float(slow_pickup_map.get(idx)),
+                'slow_tds': float(slow_tds_map.get(idx))
+            }
+        except (ValueError, TypeError):
+            # Ignorar religador se os valores numéricos forem inválidos
+            continue
+
+    for curve_data in storage_list:
+        curve_id = curve_data['id']
+        curve_type = curve_data['type']
+
+        if curve_type == 'fuse':
+            f_type = fuse_type_map.get(curve_id)
+            f_rating = fuse_rating_map.get(curve_id)
+
             if f_type is None or f_rating is None:
-                fuse_i += 1;
                 continue
+
             t_melt = [calculate_fuse_time(c, f_type, f_rating)[0] for c in currents]
             t_clear = [calculate_fuse_time(c, f_type, f_rating)[1] for c in currents]
+
             fig.add_trace(
                 go.Scatter(x=currents, y=t_melt, mode='lines', line=dict(color='yellow', width=2, dash='dash'),
                            name=f"Fusível {f_rating}{f_type} (Melt)"))
             fig.add_trace(go.Scatter(x=currents, y=t_clear, mode='lines', line=dict(color='yellow', width=2),
                                      name=f"Fusível {f_rating}{f_type} (Clear)"))
-            fuse_i += 1
-        elif curve['type'] == 'recloser':
-            if rec_i >= len(rec_fast_curves): continue
-            fast_curve = rec_fast_curves[rec_i];
-            fast_pickup = float(rec_fast_pickups[rec_i]);
-            fast_tds = float(rec_fast_tds[rec_i])
-            slow_curve = rec_slow_curves[rec_i];
-            slow_pickup = float(rec_slow_pickups[rec_i]);
-            slow_tds = float(rec_slow_tds[rec_i])
-            t_fast = [get_tcc_time(c, fast_pickup, fast_tds, fast_curve) for c in currents]
-            t_slow = [get_tcc_time(c, slow_pickup, slow_tds, slow_curve) for c in currents]
+
+        elif curve_type == 'recloser' and curve_id in recloser_map:
+            recloser = recloser_map[curve_id]
+
+            t_fast = [get_tcc_time(c, recloser['fast_pickup'], recloser['fast_tds'], recloser['fast_curve']) for c in currents]
+            t_slow = [get_tcc_time(c, recloser['slow_pickup'], recloser['slow_tds'], recloser['slow_curve']) for c in currents]
+
             fig.add_trace(go.Scatter(x=currents, y=t_fast, mode='lines', line=dict(color='cyan', width=2, dash='dash'),
-                                     name=f"Religador {curve['id']} (Rápida)"))
+                                     name=f"Religador {curve_id} (Rápida)"))
             fig.add_trace(go.Scatter(x=currents, y=t_slow, mode='lines', line=dict(color='cyan', width=2),
-                                     name=f"Religador {curve['id']} (Lenta)"))
-            rec_i += 1
-    fig.update_xaxes(range=[np.log10(10), np.log10(20000)])
-    fig.update_yaxes(range=[np.log10(0.01), np.log10(1000)])
+                                     name=f"Religador {curve_id} (Lenta)"))
+
+    fig.update_xaxes(range=[np.log10(10), np.log10(20000)], gridcolor='rgba(128,128,128,0.2)')
+    fig.update_yaxes(range=[np.log10(0.01), np.log10(1000)], gridcolor='rgba(128,128,128,0.2)')
     return fig
