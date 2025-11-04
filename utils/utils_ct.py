@@ -42,4 +42,30 @@ def check_ct_saturation(if_primary, ct_ratio_num, vk_actual, r_ct, r_b, xr_ratio
         results['status'] = f'Erro no cálculo: {e}'
         return results
 
+def calculate_sinusoidal_excitation_curve(vk, ik, saturation_level=10):
+    """
+    Calcula a curva de excitação senoidal para um TC.
+
+    Args:
+        vk (float): Tensão de Kneepoint.
+        ik (float): Corrente de excitação no ponto de Kneepoint.
+        saturation_level (int): Fator para estender a curva na região de saturação.
+
+    Returns:
+        tuple: (correntes, tensões) para plotagem.
+    """
+    # Pontos antes do Kneepoint (região linear)
+    currents1 = np.linspace(0, ik, 50)
+    voltages1 = (currents1 / ik) * vk
+
+    # Pontos após o Kneepoint (região de saturação)
+    currents2 = np.linspace(ik, ik * saturation_level, 100)
+    # A curva de saturação é modelada com uma função exponencial suave
+    voltages2 = vk + (vk * 0.1) * (1 - np.exp(-(currents2 - ik) / (ik * 2)))
+
+    # Combinar as duas partes
+    currents = np.concatenate([currents1, currents2])
+    voltages = np.concatenate([voltages1, voltages2])
+
+    return currents, voltages
 # --- [FIM] NOVAS FUNÇÕES DO MÓDULO 6 (SATURAÇÃO DE TC) ---

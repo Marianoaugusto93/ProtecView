@@ -99,60 +99,33 @@ layout_sym = html.Div(className='module-container', children=[
 ])
 # --- [FIM] Layout da Aba 2: Componentes Simétricos ---
 
-# --- Layout da Aba 3: Proteção de Distância  ---
+# --- Layout da Aba 3: Proteção de Distância (Dinâmico) ---
 layout_dist = html.Div(className='module-container', children=[
+    dcc.Store(id='dist_zone_storage', data={'zones': {}, 'next_id': 1}),
+
     html.H2(children='Visualizador de Zonas de Proteção de Distância'),
 
-    html.H4("Linha 1"),
-    html.Label("Imp (Ω):"),
-    dcc.Input(id='line1_imp', value='10', type='number', className='DashInput'),
-    html.Label(" Âng (°):"),
-    dcc.Input(id='line1_ang', value='80', type='number', className='DashInput'),
-    html.Br(), html.Br(),
+    # Coluna Esquerda
+    html.Div(style={'width': '45%', 'display': 'inline-block', 'verticalAlign': 'top', 'paddingRight': '2%'}, children=[
+        html.H4("Dados da Linha"),
+        html.Label("Impedância (Ω):"),
+        dcc.Input(id='line1_imp', value='10', type='number', className='DashInput'),
+        html.Label(" Ângulo (°):"),
+        dcc.Input(id='line1_ang', value='80', type='number', className='DashInput'),
+        html.Br(), html.Br(),
 
-    # --- Zona 1 (Fixa) ---
-    html.H4("Zona 1"),
-    html.Label("Tipo de Zona:"),
-    dcc.Dropdown(
-        id='line1_z1_type',
-        options=[
-            {'label': 'Mho (Círculo)', 'value': 'mho'},
-            {'label': 'Quadrilateral (Polígono)', 'value': 'quad'},
-        ],
-        value='mho',  # Padrão
-        clearable=False,
-        className='DashDropdown'
-    ),
-    html.Br(),
-    html.Label(id='line1_z1_label1', children="Magnitude (Ω):"),
-    dcc.Input(id='line1_z1_imp', value='8', type='number', className='DashInput'),
-    html.Label(id='line1_z1_label2', children=" Ângulo (°):"),
-    dcc.Input(id='line1_z1_ang', value='80', type='number', className='DashInput'),
-    html.Br(), html.Br(),
+        html.H4("Controles"),
+        html.Button('Adicionar Zona', id='btn_add_dist_zone', n_clicks=0, className='DashButton'),
+        html.Button('Plotar Zonas', id='btn_plot_zones', n_clicks=0, className='DashButton', style={'marginLeft': '10px', 'backgroundColor': '#28a745'}),
+        html.Hr(),
 
-    # --- Zona 2 (Fixa) ---
-    html.H4("Zona 2"),
-    html.Label("Tipo de Zona:"),
-    dcc.Dropdown(
-        id='line1_z2_type',
-        options=[
-            {'label': 'Mho (Círculo)', 'value': 'mho'},
-            {'label': 'Quadrilateral (Polígono)', 'value': 'quad'},
-        ],
-        value='mho',  # Padrão
-        clearable=False,
-        className='DashDropdown'
-    ),
-    html.Br(),
-    html.Label(id='line1_z2_label1', children="Magnitude (Ω):"),
-    dcc.Input(id='line1_z2_imp', value='12', type='number', className='DashInput'),
-    html.Label(id='line1_z2_label2', children=" Ângulo (°):"),
-    dcc.Input(id='line1_z2_ang', value='80', type='number', className='DashInput'),
-    html.Br(), html.Br(),
+        html.Div(id='dynamic_dist_zone_container', children=[]),
+    ]),
 
-    html.Button('Plotar Zonas', id='btn_plot_zones', n_clicks=0, className='DashButton'),
-    html.Hr(),
-    dcc.Graph(id='distance-plot-graph')
+    # Coluna Direita
+    html.Div(style={'width': '53%', 'display': 'inline-block', 'verticalAlign': 'top'}, children=[
+        dcc.Graph(id='distance-plot-graph')
+    ])
 ])
 # --- [FIM] Layout da Aba 3:  ---
 
@@ -165,76 +138,49 @@ tcc_curve_options = [
     {'label': 'IEEE Very Inverse (VI)', 'value': 'IEEE Very Inverse'},
     {'label': 'IEEE Extremely Inverse (EI)', 'value': 'IEEE Extremely Inverse'},
 ]
-# --- Layout da Aba 4: Curvas TCC  ---
+# --- Layout da Aba 4: Curvas TCC (Dinâmico) ---
 layout_tcc = html.Div(className='module-container', children=[
+    dcc.Store(id='tcc_curve_storage', data={'curves': {}, 'next_id': 1}),
+
     html.H2(children='Curvas de Característica Tempo-Corrente (TCC)'),
-    html.P("Coordene dispositivos de proteção (relés, fusíveis) e analise a partida de motores."),
+    html.P("Coordene dispositivos de proteção e analise a partida de motores."),
 
     # --- Coluna da Esquerda: Definições ---
     html.Div(style={'width': '45%', 'display': 'inline-block', 'verticalAlign': 'top', 'paddingRight': '2%'}, children=[
 
-        # -- Inputs Relé 1 (Upstream/Montante) --
-        html.H4("Relé 1 (Montante)"),
-        html.Label("Tipo de Curva:"),
-        dcc.Dropdown(id='tcc_r1_type', options=tcc_curve_options, value='IEEE Moderately Inverse',
-                     className='DashDropdown'),
-        html.Br(),
-        html.Label("Pickup (A):"),
-        dcc.Input(id='tcc_r1_pickup', value='5', type='number', className='DashInput'),
-        html.Label("Time Dial (TDS):"),
-        dcc.Input(id='tcc_r1_tds', value='7.37', type='number', className='DashInput'),
-        html.Br(),
+        html.H4("Controles"),
+        html.Button('Adicionar Relé', id='btn_add_tcc_curve', n_clicks=0, className='DashButton'),
+        html.Button('Plotar Curvas TCC', id='btn_plot_tcc', n_clicks=0, className='DashButton', style={'marginLeft': '10px', 'backgroundColor': '#28a745'}),
+        html.Hr(),
 
-        # -- Inputs Relé 2 (Downstream/Jusante) --
-        html.H4("Relé 2 (Jusante)"),
-        html.Label("Tipo de Curva:"),
-        dcc.Dropdown(id='tcc_r2_type', options=tcc_curve_options, value='IEEE Very Inverse', className='DashDropdown'),
-        html.Br(),
-        html.Label("Pickup (A):"),
-        dcc.Input(id='tcc_r2_pickup', value='5', type='number', className='DashInput'),
-        html.Label("Time Dial (TDS):"),
-        dcc.Input(id='tcc_r2_tds', value='7.75', type='number', className='DashInput'),
-        html.Br(),
+        html.Div(id='dynamic_tcc_curve_container', children=[]),
+        html.Hr(),
 
-        # --- [NOVO] Seção de Partida de Motor ---
+        # --- Seção de Partida de Motor ---
         html.H4("Análise de Partida de Motor (Opcional)"),
-        html.Label("Habilitar Curva do Motor:"),
         dcc.Checklist(
             options=[{'label': ' Plotar Curvas do Motor', 'value': 'plot_motor'}],
-            value=[],
-            id='tcc_motor_enable'
+            value=[], id='tcc_motor_enable'
         ),
         html.Br(),
         html.Label("Corrente Nominal (In) (A):"),
         dcc.Input(id='tcc_motor_in', value='100', type='number', className='DashInput'),
-        html.Br(),
         html.Label("Corrente de Partida (Ip) / In:"),
         dcc.Input(id='tcc_motor_ip_in', value='6', type='number', className='DashInput'),
-        html.Br(),
         html.Label("Tempo de Partida (s):"),
         dcc.Input(id='tcc_motor_t_start', value='5', type='number', className='DashInput'),
-        html.Br(),
         html.Label("Tempo de Rotor Bloqueado (s):"),
-        html.P("Tempo máximo que o motor suporta Ip (curva térmica)."),
         dcc.Input(id='tcc_motor_t_locked', value='20', type='number', className='DashInput'),
-        html.Br(), html.Br(),
-        # --- [FIM DA NOVA SEÇÃO] ---
+        html.Hr(),
 
         # -- Inputs CTI --
         html.Label("Corrente de Falta para CTI (A):"),
-        dcc.Input(id='tcc_fault_current', value='12.21', type='number', className='DashInput'),
-        html.Br(), html.Br(),
-
-        html.Button('Plotar Curvas TCC', id='btn_plot_tcc', n_clicks=0, className='DashButton'),
-
+        dcc.Input(id='tcc_fault_current', value='500', type='number', className='DashInput'),
     ]),
 
     # --- Coluna da Direita: Gráfico e Resultados ---
     html.Div(style={'width': '53%', 'display': 'inline-block', 'verticalAlign': 'top'}, children=[
-        # -- Saída CTI --
-        html.H4(id='tcc-cti-output'),  # Saída de texto para o CTI
-
-        # -- Gráfico TCC --
+        html.H4(id='tcc-cti-output'),
         dcc.Graph(id='tcc-graph')
     ])
 ])
@@ -443,7 +389,14 @@ layout_ct_saturation = html.Div(className='module-container', children=[
     html.P("O número da classe (ex: 400) é a tensão de kneepoint (Vk) real."),
     dcc.Input(id='ctsat_vk_actual', value='400', type='number', className='DashInput'),
     html.Label(" V (Kneepoint)"),
+    html.Br(),
+
+    # --- NOVO INPUT ---
+    html.Label("Corrente de Excitação em Vk (Ik) (A):"),
+    html.P("Corrente de excitação medida no ponto de kneepoint. Se não souber, use 0.1A como estimativa."),
+    dcc.Input(id='ctsat_ik_actual', value='0.1', type='number', className='DashInput'),
     html.Br(), html.Br(),
+    # --- FIM NOVO INPUT ---
 
     html.Label("Resistência Secundária do TC (Rct) (Ω):"),
     dcc.Input(id='ctsat_rct', value='0.5', type='number', className='DashInput'),
