@@ -1,0 +1,4 @@
+2026-05-19 14:10:56 - core.logging_config - INFO - setup_logging:62 - ProtecView logging initialized
+2026-05-19 14:10:56 - app - INFO - <module>:23 - Dash app initialized successfully
+2026-05-19 14:11:02 - core.logging_config - INFO - setup_logging:62 - ProtecView logging initialized
+2026-05-19 14:11:02 - app - INFO - <module>:23 - Dash app initialized successfully

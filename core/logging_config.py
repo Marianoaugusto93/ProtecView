@@ -2,7 +2,17 @@
 
 import logging
 import logging.config
+import logging.handlers
 import os
+
+def _get_log_path():
+    """Get log file path from env or default to logs/ directory"""
+    log_dir = os.environ.get('PROTECVIEW_LOG_DIR', 'logs')
+    os.makedirs(log_dir, exist_ok=True)
+    return os.path.join(log_dir, 'protecview.log')
+
+_LOG_PATH = _get_log_path()
+_LOG_LEVEL = os.environ.get('PROTECVIEW_LOG_LEVEL', 'INFO').upper()
 
 LOGGING_CONFIG = {
     'version': 1,
@@ -25,14 +35,17 @@ LOGGING_CONFIG = {
             'stream': 'ext://sys.stdout'
         },
         'file': {
-            'class': 'logging.FileHandler',
-            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'level': _LOG_LEVEL,
             'formatter': 'detailed',
-            'filename': 'protecview.log'
+            'filename': _LOG_PATH,
+            'maxBytes': 10485760,
+            'backupCount': 5,
+            'encoding': 'utf-8'
         },
     },
     'root': {
-        'level': 'DEBUG',
+        'level': _LOG_LEVEL,
         'handlers': ['console', 'file']
     },
     'loggers': {

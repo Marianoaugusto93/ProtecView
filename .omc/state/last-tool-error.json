@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"ls C:\\\\Users\\\\augus\\\\Documentos\\\\claude\\\\ProtecView\",\"description\":\"List project root directory\"}",
+  "error": "Exit code 2\nls: cannot access 'C:UsersaugusDocumentosclaudeProtecView': No such file or directory",
+  "timestamp": "2026-05-19T17:13:17.409Z",
+  "retry_count": 2
+}

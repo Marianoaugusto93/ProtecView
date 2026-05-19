@@ -1,0 +1,225 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1779208654280,
+  "projectRoot": "C:\\Users\\augus\\Documentos\\claude\\ProtecView",
+  "techStack": {
+    "languages": [
+      {
+        "name": "Python",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "requirements.txt"
+        ]
+      }
+    ],
+    "frameworks": [],
+    "packageManager": "pip",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": null,
+    "lintCommand": null,
+    "devCommand": null,
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "assets"
+    ],
+    "gitBranches": {
+      "defaultBranch": "master",
+      "branchingStrategy": null
+    }
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "assets": {
+      "path": "assets",
+      "purpose": "Static assets",
+      "fileCount": 3,
+      "lastAccessed": 1779208654215,
+      "keyFiles": [
+        "custom_styles.css",
+        "logo_protecview.png",
+        "style.css"
+      ]
+    },
+    "callbacks": {
+      "path": "callbacks",
+      "purpose": null,
+      "fileCount": 9,
+      "lastAccessed": 1779208654216,
+      "keyFiles": [
+        "callbacks_amp.py",
+        "callbacks_ct.py",
+        "callbacks_diff.py",
+        "callbacks_dist.py",
+        "callbacks_dist_protection.py"
+      ]
+    },
+    "utils": {
+      "path": "utils",
+      "purpose": "Utility functions",
+      "fileCount": 10,
+      "lastAccessed": 1779208654217,
+      "keyFiles": [
+        "utils_ampacity.py",
+        "utils_common.py",
+        "utils_ct.py",
+        "utils_diff.py",
+        "utils_dist_protection.py"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "",
+      "accessCount": 18,
+      "lastAccessed": 1779210834762,
+      "type": "directory"
+    },
+    {
+      "path": "app.py",
+      "accessCount": 5,
+      "lastAccessed": 1779210808333,
+      "type": "file"
+    },
+    {
+      "path": "callbacks\\callbacks_sym.py",
+      "accessCount": 5,
+      "lastAccessed": 1779210967717,
+      "type": "file"
+    },
+    {
+      "path": "layouts.py",
+      "accessCount": 4,
+      "lastAccessed": 1779209910296,
+      "type": "file"
+    },
+    {
+      "path": "core\\logging_config.py",
+      "accessCount": 4,
+      "lastAccessed": 1779210924087,
+      "type": "file"
+    },
+    {
+      "path": "callbacks\\callbacks_tcc.py",
+      "accessCount": 4,
+      "lastAccessed": 1779210983745,
+      "type": "file"
+    },
+    {
+      "path": "run.py",
+      "accessCount": 3,
+      "lastAccessed": 1779210807067,
+      "type": "file"
+    },
+    {
+      "path": "utils\\utils_common.py",
+      "accessCount": 3,
+      "lastAccessed": 1779210807549,
+      "type": "file"
+    },
+    {
+      "path": "assets\\style.css",
+      "accessCount": 2,
+      "lastAccessed": 1779210367059,
+      "type": "file"
+    },
+    {
+      "path": "requirements.txt",
+      "accessCount": 2,
+      "lastAccessed": 1779210830033,
+      "type": "file"
+    },
+    {
+      "path": "callbacks",
+      "accessCount": 2,
+      "lastAccessed": 1779210939475,
+      "type": "directory"
+    },
+    {
+      "path": "README.md",
+      "accessCount": 1,
+      "lastAccessed": 1779208733746,
+      "type": "file"
+    },
+    {
+      "path": "ANALISE_PROJETO.md",
+      "accessCount": 1,
+      "lastAccessed": 1779208845422,
+      "type": "file"
+    },
+    {
+      "path": "PLANO_ACAO.md",
+      "accessCount": 1,
+      "lastAccessed": 1779208882907,
+      "type": "file"
+    },
+    {
+      "path": "RESUMO_EXECUTIVO.md",
+      "accessCount": 1,
+      "lastAccessed": 1779208936067,
+      "type": "file"
+    },
+    {
+      "path": "LEIA_PRIMEIRO.md",
+      "accessCount": 1,
+      "lastAccessed": 1779208966150,
+      "type": "file"
+    },
+    {
+      "path": "QUICK_START.md",
+      "accessCount": 1,
+      "lastAccessed": 1779208997339,
+      "type": "file"
+    },
+    {
+      "path": "Procfile",
+      "accessCount": 1,
+      "lastAccessed": 1779209163987,
+      "type": "file"
+    },
+    {
+      "path": "MIGRACAO_CLOUDFLARE.md",
+      "accessCount": 1,
+      "lastAccessed": 1779209219872,
+      "type": "file"
+    },
+    {
+      "path": "PLANO_EXECUCAO_FASES.md",
+      "accessCount": 1,
+      "lastAccessed": 1779209586576,
+      "type": "file"
+    },
+    {
+      "path": "assets\\custom_styles.css",
+      "accessCount": 1,
+      "lastAccessed": 1779210357472,
+      "type": "file"
+    },
+    {
+      "path": "core\\__init__.py",
+      "accessCount": 1,
+      "lastAccessed": 1779210393983,
+      "type": "file"
+    },
+    {
+      "path": "FASE_1_COMPLETADA.md",
+      "accessCount": 1,
+      "lastAccessed": 1779210531043,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}

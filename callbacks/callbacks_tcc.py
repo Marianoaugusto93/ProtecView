@@ -4,6 +4,9 @@ import plotly.graph_objects as go
 from app import app
 from utils.utils_tcc import get_tcc_time, generate_motor_curves
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 tcc_curve_options = [
     {'label': 'IEC Standard Inverse', 'value': 'IEC Standard Inverse'},
@@ -196,7 +199,7 @@ def plotar_curvas_tcc(n_clicks, curve_data,
                 name='Curva Térmica do Motor'
             ))
         except Exception as e:
-            print(f"Erro ao plotar motor: {e}")
+            logger.error("Erro ao plotar motor", exc_info=True)
 
     valid_times = [t for t in all_times if t != np.inf and t is not None]
     max_time = max(valid_times) if valid_times else 100

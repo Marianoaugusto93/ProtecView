@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<title>RelayLab 360 · Estudos / Cálculo de Faltas</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+:root{
+  --bg:#0E1015; --card:#181B22; --card2:#1E2129; --card3:#252830; --card4:#2C2F38;
+  --bdr:rgba(255,255,255,.06); --bdr2:rgba(255,255,255,.10);
+  --orange:#F97316; --orange-dim:rgba(249,115,22,.12);
+  --cyan:#0EA5E9; --cyan-dim:rgba(14,165,233,.10);
+  --green:#4ADE80; --green-dim:rgba(74,222,128,.10);
+  --red:#F87171; --red-dim:rgba(248,113,113,.10);
+  --amber:#FBBF24;
+  --tx:#F3F4F6; --tx2:#9CA3B0; --tx3:#5C6370; --tx4:#3F4651;
+  --fm:'JetBrains Mono',monospace; --fh:'Rajdhani',sans-serif;
+  --pa:#FFE033;--pb:#E53935;--pc:#9E9E9E;--pg:#43A047;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--tx);font-family:var(--fh);min-height:100vh}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+
+/* topbar */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 18px;height:54px;background:var(--card);border-bottom:1px solid var(--bdr);position:relative}
+.topbar::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--orange) 0%,#c2410c 45%,transparent 100%)}
+.tb-l{display:flex;align-items:center;gap:14px}
+.logo{width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#1E2129,#0a0c11);border:1px solid var(--bdr2);display:flex;align-items:center;justify-content:center;color:var(--orange);font-weight:800;font-size:13px;font-family:var(--fm)}
+.tb-name{font-size:18px;font-weight:700;letter-spacing:.4px;line-height:1}
+.tb-name .num{color:var(--orange);font-weight:300;letter-spacing:2px}
+.tb-sub{font-size:8.5px;color:var(--tx3);font-weight:500;letter-spacing:1.5px;text-transform:uppercase;font-family:var(--fm);margin-top:2px}
+.nav-pills{display:flex;gap:2px;background:var(--card2);border-radius:10px;padding:3px;border:1px solid var(--bdr)}
+.np{padding:6px 18px;border-radius:7px;color:var(--tx3);font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;border:0;background:none}
+.np.on{background:var(--orange);color:#0E1015}
+.tb-r{display:flex;align-items:center;gap:14px}
+.tb-dot-wrap{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--tx2);font-weight:600;font-family:var(--fm)}
+.tb-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)}
+.tb-lang{padding:4px 10px;border-radius:6px;background:var(--card2);border:1px solid var(--bdr);font-size:10px;color:var(--tx2);font-family:var(--fm);font-weight:600}
+
+/* sub-nav */
+.sub-nav{display:flex;align-items:center;gap:14px;padding:10px 22px;background:var(--card);border-bottom:1px solid var(--bdr);font-family:var(--fm);font-size:10px;color:var(--tx3);letter-spacing:.7px;text-transform:uppercase;font-weight:700}
+.sub-nav .crumb{color:var(--tx2)}
+.sub-nav .crumb b{color:var(--orange)}
+.sub-nav .sep{color:var(--tx4)}
+.sub-nav .ctx{margin-left:18px;color:var(--tx3);text-transform:none;letter-spacing:.4px;font-weight:500}
+.sub-nav .ctx b{color:var(--tx2)}
+.sub-nav .actions{margin-left:auto;display:flex;gap:6px}
+.sub-nav .actions .b{padding:5px 12px;border-radius:5px;background:var(--card2);border:1px solid var(--bdr);font-size:9.5px;letter-spacing:.8px;color:var(--tx2);cursor:pointer}
+.sub-nav .actions .b.go{background:var(--green-dim);color:var(--green);border-color:rgba(74,222,128,.25)}
+
+/* page */
+.tool-page{padding:12px;display:flex;gap:12px;height:calc(100vh - 54px - 40px);min-height:760px}
+.tool-sb{width:308px;flex-shrink:0;display:flex;flex-direction:column;gap:10px}
+.tool-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px}
+.tool-aside{width:300px;flex-shrink:0;display:flex;flex-direction:column;gap:10px}
+
+.card{background:var(--card);border:1px solid var(--bdr);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.ph{padding:10px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--bdr)}
+.ph .bar{width:3px;height:14px;border-radius:2px;background:var(--orange)}
+.ph .bar.c{background:var(--cyan)} .ph .bar.g{background:var(--green)} .ph .bar.a{background:var(--amber)}
+.ph .lbl{font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--tx2)}
+.ph .meta{margin-left:auto;font-family:var(--fm);font-size:9.5px;color:var(--tx3);letter-spacing:.5px}
+
+.body{padding:12px 14px;display:flex;flex-direction:column;gap:9px}
+.field{display:flex;flex-direction:column;gap:4px}
+.field .lb{font-family:var(--fm);font-size:9px;color:var(--tx3);font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.field .ip{background:var(--card2);border:1px solid var(--bdr);border-radius:6px;padding:9px 11px;font-family:var(--fm);font-size:12.5px;color:var(--tx);display:flex;align-items:center}
+.field .ip .v{flex:1}
+.field .ip .u{color:var(--tx3);font-size:10px}
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.section-title{padding:8px 0 2px;font-family:var(--fm);font-size:9px;color:var(--tx3);font-weight:700;letter-spacing:1px;text-transform:uppercase;border-top:1px solid var(--bdr);margin-top:6px;padding-top:12px}
+
+.seg{display:flex;gap:2px;background:var(--card3);border-radius:6px;padding:2px}
+.seg button{padding:6px 12px;font-family:var(--fm);font-size:9.5px;font-weight:700;color:var(--tx3);border-radius:4px;letter-spacing:.8px;text-transform:uppercase;flex:1;border:0;background:none;cursor:pointer}
+.seg button.on{background:var(--orange);color:#0E1015}
+
+.fault-types{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px 14px;border-bottom:1px solid var(--bdr)}
+.ft{padding:10px 12px;border-radius:7px;background:var(--card2);border:1px solid var(--bdr);font-family:var(--fm);color:var(--tx2);font-weight:700;letter-spacing:.4px;text-align:left;display:flex;align-items:center;gap:10px;cursor:pointer}
+.ft .k{font-size:13px;color:var(--tx3);width:38px;font-weight:800}
+.ft .nm{flex:1;font-size:11px}
+.ft.on{background:var(--orange-dim);border-color:rgba(249,115,22,.4);color:var(--orange)}
+.ft.on .k{color:var(--orange)}
+
+.results-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--bdr);padding:1px;border-radius:8px;overflow:hidden;margin:0 14px}
+.rcell{background:var(--card2);padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.rcell .l{font-family:var(--fm);font-size:9px;color:var(--tx3);font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.rcell .v{font-family:var(--fm);font-size:22px;font-weight:700;color:var(--orange);line-height:1.05}
+.rcell .v.c{color:var(--cyan)} .rcell .v.t{color:var(--tx)}
+.rcell .u{font-family:var(--fm);font-size:9.5px;color:var(--tx3)}
+
+.phasor-wrap{padding:10px 14px;border-top:1px solid var(--bdr);border-bottom:1px solid var(--bdr);background:rgba(0,0,0,.18)}
+.ph-h{display:flex;align-items:center;gap:8px;padding:4px 0 8px;font-family:var(--fm);font-size:9px;color:var(--tx3);font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.ph-h .pill{margin-left:auto;font-size:9px;padding:2px 7px;border-radius:3px;background:var(--card3);color:var(--tx2);font-weight:600;border:1px solid var(--bdr)}
+
+.btn{padding:8px 14px;border-radius:7px;font-family:var(--fh);font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;border:1px solid var(--bdr2);background:var(--card2);color:var(--tx2);display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.btn.primary{background:var(--orange-dim);border-color:rgba(249,115,22,.4);color:var(--orange)}
+.btn.send{background:var(--green-dim);border-color:rgba(74,222,128,.35);color:var(--green)}
+
+.section-h{padding:12px 14px 4px;font-family:var(--fm);font-size:9px;color:var(--tx3);font-weight:700;letter-spacing:1px;text-transform:uppercase}
+
+.seq-table{display:flex;flex-direction:column;gap:1px;background:var(--bdr);border-radius:6px;overflow:hidden;border:1px solid var(--bdr)}
+.seq-table .h{background:var(--card3);padding:6px 11px;display:flex;font-family:var(--fm);font-size:9px;color:var(--tx3);font-weight:700;letter-spacing:1px}
+.seq-table .r{background:var(--card2);padding:7px 11px;display:flex;font-family:var(--fm);font-size:11.5px}
+.seq-table .r .nm{flex:1;color:var(--tx2)}
+.seq-table .r .v{font-weight:700;color:var(--tx)}
+.seq-table .r .v.g{color:var(--green)}
+
+.cont-list{padding:12px 14px;display:flex;flex-direction:column;gap:8px;font-size:12px;color:var(--tx2);line-height:1.5}
+.cont-list .step{display:flex;gap:9px;align-items:flex-start}
+.cont-list .step .n{color:var(--orange);font-family:var(--fm);font-weight:800;flex-shrink:0;min-width:18px}
+.cont-list .step b{color:var(--tx)}
+.cont-list .step a{color:var(--cyan);text-decoration:none;font-weight:600}
+.cont-list .step .ora{color:var(--orange);font-weight:600}
+</style>
+</head>
+<body>
+
+<!-- topbar -->
+<div class="topbar">
+  <div class="tb-l">
+    <div class="logo">RL</div>
+    <div>
+      <div class="tb-name">RelayLab&nbsp;<span class="num">360</span></div>
+      <div class="tb-sub">Integral Protection Engineering Platform</div>
+    </div>
+  </div>
+  <div class="nav-pills">
+    <button class="np on">Estudos</button>
+    <button class="np">Campo</button>
+    <button class="np">Relé</button>
+    <button class="np">Painel</button>
+  </div>
+  <div class="tb-r">
+    <div class="tb-dot-wrap"><div class="tb-dot"></div>Online</div>
+    <div class="tb-lang">BR PT ▾</div>
+    <button class="btn" style="padding:4px 10px;font-size:13px">?</button>
+  </div>
+</div>
+
+<!-- breadcrumb -->
+<div class="sub-nav">
+  <span class="crumb">Estudos</span>
+  <span class="sep">/</span>
+  <span class="crumb">Sistema</span>
+  <span class="sep">/</span>
+  <span class="crumb"><b>Cálculo de Faltas</b></span>
+  <span class="ctx">Estudo: <b>BAY-01</b> · Subestação Industrial · <b>13.8 kV</b></span>
+  <div class="actions">
+    <button class="b">↓ Importar</button>
+    <button class="b">↑ Exportar</button>
+    <button class="b go">→ Enviar p/ Relé</button>
+  </div>
+</div>
+
+<!-- page -->
+<div class="tool-page">
+
+  <!-- LEFT · bay context + params -->
+  <div class="tool-sb">
+    <div class="card" style="flex:1">
+      <div class="ph">
+        <div class="bar"></div>
+        <div class="lbl">Parâmetros do Bay</div>
+        <div class="meta">BAY-01</div>
+      </div>
+      <div class="body">
+        <div class="field">
+          <span class="lb">Tensão Nominal</span>
+          <div class="ip"><span class="v">13.800</span><span class="u">kV</span></div>
+        </div>
+        <div class="field">
+          <span class="lb">Potência de Curto (Sₛc)</span>
+          <div class="ip"><span class="v">350.0</span><span class="u">MVA</span></div>
+        </div>
+        <div class="field-grid">
+          <div class="field">
+            <span class="lb">X/R</span>
+            <div class="ip"><span class="v">14.5</span><span class="u"></span></div>
+          </div>
+          <div class="field">
+            <span class="lb">Freq.</span>
+            <div class="ip"><span class="v">60</span><span class="u">Hz</span></div>
+          </div>
+        </div>
+        <div class="field">
+          <span class="lb">Conexão do Sistema</span>
+          <div class="ip"><span class="v">YN · aterrado</span><span class="u">▾</span></div>
+        </div>
+        <div class="section-title">Impedâncias (Ω)</div>
+        <div class="field-grid">
+          <div class="field">
+            <span class="lb">Z₁</span>
+            <div class="ip"><span class="v">0.21 + j2.85</span></div>
+          </div>
+          <div class="field">
+            <span class="lb">Z₂</span>
+            <div class="ip"><span class="v">0.21 + j2.85</span></div>
+          </div>
+          <div class="field">
+            <span class="lb">Z₀</span>
+            <div class="ip"><span class="v">0.40 + j8.20</span></div>
+          </div>
+          <div class="field">
+            <span class="lb">Zf</span>
+            <div class="ip"><span class="v">0.00</span></div>
+          </div>
+        </div>
+        <div class="section-title">TC / TP</div>
+        <div class="field-grid">
+          <div class="field">
+            <span class="lb">TC ratio</span>
+            <div class="ip"><span class="v">600 / 5</span></div>
+          </div>
+          <div class="field">
+            <span class="lb">TC classe</span>
+            <div class="ip"><span class="v">5P20</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER · fault type + results -->
+  <div class="tool-main">
+    <div class="card" style="flex:1">
+      <div class="ph">
+        <div class="bar c"></div>
+        <div class="lbl">Tipo de Falta</div>
+        <div class="seg" style="margin-left:auto">
+          <button class="on">Secundário</button>
+          <button>Primário</button>
+          <button>p.u.</button>
+        </div>
+      </div>
+
+      <div class="fault-types">
+        <button class="ft on"><span class="k">3φ</span><span class="nm">Trifásico simétrico</span></button>
+        <button class="ft"><span class="k">2φ</span><span class="nm">Bifásico</span></button>
+        <button class="ft"><span class="k">2φ-T</span><span class="nm">Bifásico-Terra</span></button>
+        <button class="ft"><span class="k">1φ-T</span><span class="nm">Monofásico-Terra</span></button>
+      </div>
+
+      <div class="section-h">Resultados · falta trifásica</div>
+      <div class="results-grid">
+        <div class="rcell">
+          <span class="l">Iₛc · simétrico</span>
+          <span class="v">14.64</span>
+          <span class="u">kA · 600 A sec</span>
+        </div>
+        <div class="rcell">
+          <span class="l">Iₛc · assimétrico</span>
+          <span class="v c">21.30</span>
+          <span class="u">kA · pico (X/R=14.5)</span>
+        </div>
+        <div class="rcell">
+          <span class="l">Tempo de DC ↓ 50%</span>
+          <span class="v t">38.5</span>
+          <span class="u">ms</span>
+        </div>
+      </div>
+
+      <div class="section-h" style="padding-top:14px">Forma de onda · correntes secundárias (TC 600/5)</div>
+      <div class="phasor-wrap">
+        <div class="ph-h">
+          <span style="color:var(--tx2)">Correntes de curto-circuito · 8 ciclos</span>
+          <span class="pill">complete · 0 ms</span>
+        </div>
+        <svg viewBox="0 0 760 170" style="display:block;width:100%;height:170px">
+          <!-- baseline -->
+          <line x1="40" y1="85" x2="740" y2="85" stroke="#3F4651" stroke-width=".6"/>
+          <!-- A -->
+          <path d="M40 85 Q60 20 90 85 T140 85 T190 85 T240 85 T290 85 T340 85 T390 85 T440 85 T490 85 T540 85 T590 85 T640 85 T690 85 T740 85" stroke="#FFE033" stroke-width="2" fill="none"/>
+          <!-- B (-120°) -->
+          <path d="M40 85 Q60 150 90 85 T140 85 T190 85 T240 85 T290 85 T340 85 T390 85 T440 85 T490 85 T540 85 T590 85 T640 85 T690 85 T740 85" stroke="#E53935" stroke-width="2" fill="none" transform="translate(33,0)"/>
+          <!-- C (+120°) -->
+          <path d="M40 85 Q60 20 90 85 T140 85 T190 85 T240 85 T290 85 T340 85 T390 85 T440 85 T490 85 T540 85 T590 85 T640 85 T690 85 T740 85" stroke="#9E9E9E" stroke-width="2" fill="none" transform="translate(66,0)"/>
+          <!-- legend -->
+          <g font-family="JetBrains Mono" font-size="10">
+            <rect x="40" y="148" width="8" height="8" fill="#FFE033"/><text x="52" y="156" fill="#9CA3B0">Iₐ · 5.00 A ∠ 0°</text>
+            <rect x="180" y="148" width="8" height="8" fill="#E53935"/><text x="192" y="156" fill="#9CA3B0">Iᵦ · 5.00 A ∠ −120°</text>
+            <rect x="340" y="148" width="8" height="8" fill="#9E9E9E"/><text x="352" y="156" fill="#9CA3B0">I꜀ · 5.00 A ∠ +120°</text>
+            <text x="700" y="156" fill="#5C6370" text-anchor="end">t (ms)</text>
+          </g>
+        </svg>
+      </div>
+
+      <!-- action footer -->
+      <div style="padding:12px 14px;display:flex;gap:8px;align-items:center;border-top:1px solid var(--bdr);margin-top:auto;flex-wrap:wrap">
+        <button class="btn">↺ Reset</button>
+        <button class="btn">⎘ Copiar tabela</button>
+        <button class="btn">📈 Abrir em Curvas TCC</button>
+        <button class="btn send" style="margin-left:auto">→ Enviar como preset para Relé</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT · phasor + sequences + continuity -->
+  <div class="tool-aside">
+    <div class="card">
+      <div class="ph">
+        <div class="bar g"></div>
+        <div class="lbl">Diagrama Fasorial</div>
+        <div class="meta">sequências</div>
+      </div>
+      <div style="padding:14px 14px 10px;display:flex;flex-direction:column;gap:10px">
+        <svg viewBox="0 0 260 260" style="display:block;width:100%;height:auto">
+          <!-- axes -->
+          <line x1="130" y1="20" x2="130" y2="240" stroke="#2C2F38" stroke-width=".8"/>
+          <line x1="20" y1="130" x2="240" y2="130" stroke="#2C2F38" stroke-width=".8"/>
+          <circle cx="130" cy="130" r="100" fill="none" stroke="#2C2F38" stroke-width=".8" stroke-dasharray="2 3"/>
+          <circle cx="130" cy="130" r="60" fill="none" stroke="#2C2F38" stroke-width=".8" stroke-dasharray="2 3"/>
+          <!-- Iₐ (0°) -->
+          <line x1="130" y1="130" x2="220" y2="130" stroke="#FFE033" stroke-width="2.5"/>
+          <polygon points="220,130 213,126 213,134" fill="#FFE033"/>
+          <text x="225" y="128" fill="#FFE033" font-family="JetBrains Mono" font-size="10">Iₐ</text>
+          <!-- Iᵦ (-120°) -->
+          <line x1="130" y1="130" x2="85" y2="208" stroke="#E53935" stroke-width="2.5"/>
+          <polygon points="85,208 91,202 80,200" fill="#E53935"/>
+          <text x="65" y="218" fill="#E53935" font-family="JetBrains Mono" font-size="10">Iᵦ</text>
+          <!-- I꜀ (+120°) -->
+          <line x1="130" y1="130" x2="85" y2="52" stroke="#9E9E9E" stroke-width="2.5"/>
+          <polygon points="85,52 91,58 80,60" fill="#9E9E9E"/>
+          <text x="65" y="50" fill="#9E9E9E" font-family="JetBrains Mono" font-size="10">I꜀</text>
+          <!-- ring labels -->
+          <text x="130" y="14" fill="#5C6370" font-family="JetBrains Mono" font-size="8" text-anchor="middle">90°</text>
+          <text x="246" y="133" fill="#5C6370" font-family="JetBrains Mono" font-size="8">0°</text>
+          <text x="130" y="252" fill="#5C6370" font-family="JetBrains Mono" font-size="8" text-anchor="middle">270°</text>
+          <text x="14" y="133" fill="#5C6370" font-family="JetBrains Mono" font-size="8" text-anchor="end">180°</text>
+        </svg>
+
+        <div class="seq-table">
+          <div class="h"><span style="flex:1">SEQ.</span><span>MAGNITUDE</span></div>
+          <div class="r"><span class="nm">I₁ · positiva</span><span class="v g">14.64 kA</span></div>
+          <div class="r"><span class="nm">I₂ · negativa</span><span class="v">0.00 kA</span></div>
+          <div class="r"><span class="nm">I₀ · zero</span><span class="v">0.00 kA</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ph">
+        <div class="bar a"></div>
+        <div class="lbl">Continuidade</div>
+        <div class="meta">próximos passos</div>
+      </div>
+      <div class="cont-list">
+        <div class="step"><span class="n">1.</span><span>Usar <b>Iₛc</b> como pickup do estágio 50 em <span class="ora">Relé</span>.</span></div>
+        <div class="step"><span class="n">2.</span><span>Verificar TC contra saturação em <a href="#">Estudos → Saturação de TC</a>.</span></div>
+        <div class="step"><span class="n">3.</span><span>Plotar curva resultante em <a href="#">Estudos → Curvas TCC</a>.</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

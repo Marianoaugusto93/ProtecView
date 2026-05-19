@@ -160,8 +160,10 @@ def sync_dist_values(fuse_types, fuse_ratings, rec_fast_curves, rec_fast_pickups
                      rec_slow_curves, rec_slow_pickups, rec_slow_tds,
                      fuse_type_ids, fuse_rating_ids, recloser_ids):
     """Sincronizar valores dos componentes dinâmicos com Store"""
+    fuse_types = fuse_types or []
+    recloser_ids = recloser_ids or []
     values_store = {
-        'fuse_types': fuse_types or [],
+        'fuse_types': fuse_types,
         'fuse_ratings': fuse_ratings or [],
         'rec_fast_curves': rec_fast_curves or [],
         'rec_fast_pickups': rec_fast_pickups or [],
@@ -171,7 +173,7 @@ def sync_dist_values(fuse_types, fuse_ratings, rec_fast_curves, rec_fast_pickups
         'rec_slow_tds': rec_slow_tds or [],
         'fuse_type_ids': fuse_type_ids or [],
         'fuse_rating_ids': fuse_rating_ids or [],
-        'recloser_ids': recloser_ids or [],
+        'recloser_ids': recloser_ids,
     }
     logger.debug(f"Sincronizando valores: {len(fuse_types)} fusíveis, {len(recloser_ids)} religadores")
     return values_store
@@ -269,8 +271,8 @@ def plot_dist_tcc_graph(n_clicks, storage_json: str, values_store: dict) -> go.F
         logger.debug(f"Mapa religadores: {recloser_map}")
 
     except Exception as e:
-        logger.error(f"Erro ao criar mapeamentos: {e}", exc_info=True)
-        fig.update_layout(title=f"Erro: {str(e)}")
+        logger.error("Erro ao criar mapeamentos", exc_info=True)
+        fig.update_layout(title="Erro ao gerar coordenação. Verifique os parâmetros.")
         return fig
 
     # Plotar curvas

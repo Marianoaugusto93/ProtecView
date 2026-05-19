@@ -115,4 +115,5 @@ def calcular_componentes_bidirecional(n_clicks, direction,
 
         return out_1_str, out_2_str, out_3_str, fig_in, fig_out
     except Exception as e:
-        return f"Erro: {e}", "", "", fig_vazia, fig_vazia
+        logger.exception("Erro em calcular_componentes_bidirecional")
+        return "Erro ao calcular componentes. Verifique os valores.", "", "", fig_vazia, fig_vazia

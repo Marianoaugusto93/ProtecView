@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip list *)",
+      "Bash(xargs wc -l)",
+      "Bash(git branch *)",
+      "Bash(git checkout *)",
+      "Bash(python -m py_compile callbacks/callbacks_dist_protection.py layouts.py)",
+      "Bash(python -c \"from callbacks.callbacks_dist_protection import *; print\\('✅ Imports OK'\\)\")",
+      "Bash(pip install *)",
+      "Bash(python -c \"from callbacks.callbacks_dist_protection import plot_dist_tcc_graph, sync_dist_values; from layouts import layout_dist_protection; print\\('Imports OK'\\)\")",
+      "Bash(timeout 5 python run.py)",
+      "Bash(netstat -ano)",
+      "Bash(findstr \":8050\")",
+      "Bash(git add *)",
+      "Bash(git commit -m 'fix: resolve dist_protection callback data mapping issue *)",
+      "Bash(git commit -m 'feat: add type hints and structured logging *)",
+      "Bash(python -m py_compile app.py run.py callbacks/*.py utils/*.py core/*.py)",
+      "Bash(git merge *)",
+      "Bash(git tag *)",
+      "Bash(git push *)"
+    ]
+  }
+}
