@@ -540,6 +540,7 @@ layout_dist_protection = html.Div(className='module-container', children=[
 
     # Armazenamento de Estado (Div Oculto)
     html.Div(id='dist_curve_storage', children='[]', style={'display': 'none'}),  # Guarda um JSON
+    dcc.Store(id='dist_curve_values_store', data={}),  # Armazena valores dos componentes dinâmicos
 
     # --- Coluna da Esquerda: Adicionar Curvas ---
     html.Div(style={'width': '45%', 'display': 'inline-block', 'verticalAlign': 'top', 'paddingRight': '2%'}, children=[

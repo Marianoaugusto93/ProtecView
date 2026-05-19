@@ -5,8 +5,11 @@ import plotly.graph_objects as go
 from app import app
 import json
 import numpy as np
+import logging
 from utils.utils_dist_protection import calculate_fuse_time
 from utils.utils_tcc import get_tcc_time
+
+logger = logging.getLogger(__name__)
 
 
 # ... (Funções create_fuse_controls e create_recloser_controls ficam iguais) ...
@@ -133,36 +136,59 @@ def render_dist_controls(storage_json):
     return children
 
 
+# Callback para capturar valores dos componentes dinâmicos quando mudam
+@app.callback(
+    Output('dist_curve_values_store', 'data'),
+    [
+        Input({'type': 'fuse-type', 'index': ALL}, 'value'),
+        Input({'type': 'fuse-rating', 'index': ALL}, 'value'),
+        Input({'type': 'recloser-fast-curve', 'index': ALL}, 'value'),
+        Input({'type': 'recloser-fast-pickup', 'index': ALL}, 'value'),
+        Input({'type': 'recloser-fast-tds', 'index': ALL}, 'value'),
+        Input({'type': 'recloser-slow-curve', 'index': ALL}, 'value'),
+        Input({'type': 'recloser-slow-pickup', 'index': ALL}, 'value'),
+        Input({'type': 'recloser-slow-tds', 'index': ALL}, 'value'),
+    ],
+    [
+        State({'type': 'fuse-type', 'index': ALL}, 'id'),
+        State({'type': 'fuse-rating', 'index': ALL}, 'id'),
+        State({'type': 'recloser-fast-curve', 'index': ALL}, 'id'),
+    ],
+    prevent_initial_call=True
+)
+def sync_dist_values(fuse_types, fuse_ratings, rec_fast_curves, rec_fast_pickups, rec_fast_tds,
+                     rec_slow_curves, rec_slow_pickups, rec_slow_tds,
+                     fuse_type_ids, fuse_rating_ids, recloser_ids):
+    """Sincronizar valores dos componentes dinâmicos com Store"""
+    values_store = {
+        'fuse_types': fuse_types or [],
+        'fuse_ratings': fuse_ratings or [],
+        'rec_fast_curves': rec_fast_curves or [],
+        'rec_fast_pickups': rec_fast_pickups or [],
+        'rec_fast_tds': rec_fast_tds or [],
+        'rec_slow_curves': rec_slow_curves or [],
+        'rec_slow_pickups': rec_slow_pickups or [],
+        'rec_slow_tds': rec_slow_tds or [],
+        'fuse_type_ids': fuse_type_ids or [],
+        'fuse_rating_ids': fuse_rating_ids or [],
+        'recloser_ids': recloser_ids or [],
+    }
+    logger.debug(f"Sincronizando valores: {len(fuse_types)} fusíveis, {len(recloser_ids)} religadores")
+    return values_store
+
+
 @app.callback(
     Output('dist_tcc_graph', 'figure'),
     Input('btn_plot_dist_curves', 'n_clicks'),
     [
-        # Fuse states
-        State({'type': 'fuse-type', 'index': ALL}, 'value'),
-        State({'type': 'fuse-type', 'index': ALL}, 'id'),
-        State({'type': 'fuse-rating', 'index': ALL}, 'value'),
-        State({'type': 'fuse-rating', 'index': ALL}, 'id'),
-        # Recloser states
-        State({'type': 'recloser-fast-curve', 'index': ALL}, 'value'),
-        State({'type': 'recloser-fast-curve', 'index': ALL}, 'id'),
-        State({'type': 'recloser-fast-pickup', 'index': ALL}, 'value'),
-        State({'type': 'recloser-fast-tds', 'index': ALL}, 'value'),
-        State({'type': 'recloser-slow-curve', 'index': ALL}, 'value'),
-        State({'type': 'recloser-slow-pickup', 'index': ALL}, 'value'),
-        State({'type': 'recloser-slow-tds', 'index': ALL}, 'value'),
-        # Storage
-        State('dist_curve_storage', 'children')
+        State('dist_curve_storage', 'children'),
+        State('dist_curve_values_store', 'data'),
     ],
     prevent_initial_call=True
 )
-def plot_dist_tcc_graph(n_clicks,
-                        # Fuse args
-                        fuse_types_val, fuse_type_ids, fuse_ratings_val, fuse_rating_ids,
-                        # Recloser args
-                        rec_fast_curves_val, recloser_ids, rec_fast_pickups_val, rec_fast_tds_val,
-                        rec_slow_curves_val, rec_slow_pickups_val, rec_slow_tds_val,
-                        # Storage arg
-                        storage_json):
+def plot_dist_tcc_graph(n_clicks, storage_json: str, values_store: dict) -> go.Figure:
+    """Plotar gráfico TCC de distribuição com fusíveis e religadores"""
+
     fig = go.Figure(layout=go.Layout(
         xaxis_type="log", yaxis_type="log",
         title="Coordenação de Distribuição",
@@ -174,76 +200,145 @@ def plot_dist_tcc_graph(n_clicks,
         fig.update_layout(title="Adicione dispositivos e clique em 'Plotar Gráfico'")
         return fig
 
+    # Parsear storage
     try:
-        storage_list = json.loads(storage_json)
+        storage_list = json.loads(storage_json) if storage_json else []
     except (TypeError, json.JSONDecodeError):
         storage_list = []
+        logger.warning("Falha ao parsear storage_json")
+
+    if not storage_list:
+        fig.update_layout(title="Nenhum dispositivo adicionado")
+        return fig
+
+    if values_store is None:
+        values_store = {}
 
     currents = np.logspace(1, np.log10(20000), num=200)
 
-    # Criar mapeamentos de ID para valores de forma robusta
-    fuse_type_map = {f_id['index']: val for f_id, val in zip(fuse_type_ids, fuse_types_val)}
-    fuse_rating_map = {f_id['index']: val for f_id, val in zip(fuse_rating_ids, fuse_ratings_val)}
-
-    # Mapeamento para religadores
-    # Assumindo que os IDs de todos os componentes de um religador são os mesmos.
-    # Usaremos recloser_ids como a fonte da verdade para os índices.
+    # Criar mapeamentos robustos a partir do values_store
+    fuse_type_map = {}
+    fuse_rating_map = {}
     recloser_map = {}
 
-    # Criar dicionários de mapeamento para cada propriedade do religador
-    fast_curve_map = {r_id['index']: val for r_id, val in zip(recloser_ids, rec_fast_curves_val)}
-    fast_pickup_map = {r_id['index']: val for r_id, val in zip(recloser_ids, rec_fast_pickups_val)}
-    fast_tds_map = {r_id['index']: val for r_id, val in zip(recloser_ids, rec_fast_tds_val)}
-    slow_curve_map = {r_id['index']: val for r_id, val in zip(recloser_ids, rec_slow_curves_val)}
-    slow_pickup_map = {r_id['index']: val for r_id, val in zip(recloser_ids, rec_slow_pickups_val)}
-    slow_tds_map = {r_id['index']: val for r_id, val in zip(recloser_ids, rec_slow_tds_val)}
+    try:
+        # Mapeamento para fusíveis
+        fuse_type_ids = values_store.get('fuse_type_ids', [])
+        fuse_types = values_store.get('fuse_types', [])
+        fuse_ratings = values_store.get('fuse_ratings', [])
+        fuse_rating_ids = values_store.get('fuse_rating_ids', [])
 
-    for r_id_dict in recloser_ids:
-        idx = r_id_dict['index']
-        try:
-            recloser_map[idx] = {
-                'fast_curve': fast_curve_map.get(idx),
-                'fast_pickup': float(fast_pickup_map.get(idx)),
-                'fast_tds': float(fast_tds_map.get(idx)),
-                'slow_curve': slow_curve_map.get(idx),
-                'slow_pickup': float(slow_pickup_map.get(idx)),
-                'slow_tds': float(slow_tds_map.get(idx))
-            }
-        except (ValueError, TypeError):
-            # Ignorar religador se os valores numéricos forem inválidos
-            continue
+        for f_id, f_type in zip(fuse_type_ids, fuse_types):
+            if f_id and isinstance(f_id, dict):
+                fuse_type_map[f_id.get('index')] = f_type
 
+        for f_id, f_rating in zip(fuse_rating_ids, fuse_ratings):
+            if f_id and isinstance(f_id, dict):
+                fuse_rating_map[f_id.get('index')] = f_rating
+
+        logger.debug(f"Mapa fusíveis: {fuse_type_map}, {fuse_rating_map}")
+
+        # Mapeamento para religadores
+        recloser_ids = values_store.get('recloser_ids', [])
+        rec_fast_curves = values_store.get('rec_fast_curves', [])
+        rec_fast_pickups = values_store.get('rec_fast_pickups', [])
+        rec_fast_tds = values_store.get('rec_fast_tds', [])
+        rec_slow_curves = values_store.get('rec_slow_curves', [])
+        rec_slow_pickups = values_store.get('rec_slow_pickups', [])
+        rec_slow_tds = values_store.get('rec_slow_tds', [])
+
+        for r_id, fc, fp, ft, sc, sp, st in zip(
+            recloser_ids, rec_fast_curves, rec_fast_pickups, rec_fast_tds,
+            rec_slow_curves, rec_slow_pickups, rec_slow_tds
+        ):
+            if r_id and isinstance(r_id, dict):
+                idx = r_id.get('index')
+                try:
+                    recloser_map[idx] = {
+                        'fast_curve': fc,
+                        'fast_pickup': float(fp) if fp else 100,
+                        'fast_tds': float(ft) if ft else 0.1,
+                        'slow_curve': sc,
+                        'slow_pickup': float(sp) if sp else 100,
+                        'slow_tds': float(st) if st else 0.5,
+                    }
+                except (ValueError, TypeError) as e:
+                    logger.warning(f"Erro ao processar religador {idx}: {e}")
+                    continue
+
+        logger.debug(f"Mapa religadores: {recloser_map}")
+
+    except Exception as e:
+        logger.error(f"Erro ao criar mapeamentos: {e}", exc_info=True)
+        fig.update_layout(title=f"Erro: {str(e)}")
+        return fig
+
+    # Plotar curvas
+    trace_count = 0
     for curve_data in storage_list:
-        curve_id = curve_data['id']
-        curve_type = curve_data['type']
+        curve_id = curve_data.get('id')
+        curve_type = curve_data.get('type')
 
         if curve_type == 'fuse':
             f_type = fuse_type_map.get(curve_id)
             f_rating = fuse_rating_map.get(curve_id)
 
             if f_type is None or f_rating is None:
+                logger.warning(f"Fusível {curve_id}: tipo={f_type}, rating={f_rating} - pulando")
                 continue
 
-            t_melt = [calculate_fuse_time(c, f_type, f_rating)[0] for c in currents]
-            t_clear = [calculate_fuse_time(c, f_type, f_rating)[1] for c in currents]
+            try:
+                t_melt = [calculate_fuse_time(c, f_type, f_rating)[0] for c in currents]
+                t_clear = [calculate_fuse_time(c, f_type, f_rating)[1] for c in currents]
 
-            fig.add_trace(
-                go.Scatter(x=currents, y=t_melt, mode='lines', line=dict(color='yellow', width=2, dash='dash'),
-                           name=f"Fusível {f_rating}{f_type} (Melt)"))
-            fig.add_trace(go.Scatter(x=currents, y=t_clear, mode='lines', line=dict(color='yellow', width=2),
-                                     name=f"Fusível {f_rating}{f_type} (Clear)"))
+                fig.add_trace(
+                    go.Scatter(x=currents, y=t_melt, mode='lines',
+                               line=dict(color='yellow', width=2, dash='dash'),
+                               name=f"Fusível {f_rating}{f_type} (Melt)"))
+                fig.add_trace(
+                    go.Scatter(x=currents, y=t_clear, mode='lines',
+                               line=dict(color='yellow', width=2),
+                               name=f"Fusível {f_rating}{f_type} (Clear)"))
+                trace_count += 2
+                logger.info(f"Fusível {f_rating}{f_type} plotado")
 
-        elif curve_type == 'recloser' and curve_id in recloser_map:
+            except Exception as e:
+                logger.error(f"Erro ao calcular fusível {curve_id}: {e}")
+                continue
+
+        elif curve_type == 'recloser':
+            if curve_id not in recloser_map:
+                logger.warning(f"Religador {curve_id} não encontrado no mapa")
+                continue
+
             recloser = recloser_map[curve_id]
+            try:
+                t_fast = [get_tcc_time(c, recloser['fast_pickup'], recloser['fast_tds'],
+                                       recloser['fast_curve']) for c in currents]
+                t_slow = [get_tcc_time(c, recloser['slow_pickup'], recloser['slow_tds'],
+                                       recloser['slow_curve']) for c in currents]
 
-            t_fast = [get_tcc_time(c, recloser['fast_pickup'], recloser['fast_tds'], recloser['fast_curve']) for c in currents]
-            t_slow = [get_tcc_time(c, recloser['slow_pickup'], recloser['slow_tds'], recloser['slow_curve']) for c in currents]
+                fig.add_trace(go.Scatter(x=currents, y=t_fast, mode='lines',
+                                         line=dict(color='cyan', width=2, dash='dash'),
+                                         name=f"Religador {curve_id} (Rápida)"))
+                fig.add_trace(go.Scatter(x=currents, y=t_slow, mode='lines',
+                                         line=dict(color='cyan', width=2),
+                                         name=f"Religador {curve_id} (Lenta)"))
+                trace_count += 2
+                logger.info(f"Religador {curve_id} plotado")
 
-            fig.add_trace(go.Scatter(x=currents, y=t_fast, mode='lines', line=dict(color='cyan', width=2, dash='dash'),
-                                     name=f"Religador {curve_id} (Rápida)"))
-            fig.add_trace(go.Scatter(x=currents, y=t_slow, mode='lines', line=dict(color='cyan', width=2),
-                                     name=f"Religador {curve_id} (Lenta)"))
+            except Exception as e:
+                logger.error(f"Erro ao calcular religador {curve_id}: {e}")
+                continue
+
+    if trace_count == 0:
+        fig.update_layout(title="Nenhuma curva foi plotada. Verifique os valores dos dispositivos.")
+        logger.warning("Nenhuma curva foi plotada")
+    else:
+        fig.update_layout(title=f"Coordenação de Distribuição ({trace_count} curvas)")
 
     fig.update_xaxes(range=[np.log10(10), np.log10(20000)], gridcolor='rgba(128,128,128,0.2)')
     fig.update_yaxes(range=[np.log10(0.01), np.log10(1000)], gridcolor='rgba(128,128,128,0.2)')
+
+    logger.info(f"Gráfico plotado com sucesso: {trace_count} curvas")
     return fig
