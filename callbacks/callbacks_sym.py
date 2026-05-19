@@ -1,5 +1,7 @@
 # Ficheiro: callbacks/callbacks_sym.py
-# (Removido template="plotly_dark")
+
+from typing import Tuple, List, Any
+import logging
 from dash import Input, Output, State, no_update
 import numpy as np
 import plotly.graph_objects as go
@@ -7,6 +9,7 @@ from app import app
 from utils.utils_sym import create_phasor_diagram
 from utils.utils_common import polar_to_complex
 
+logger = logging.getLogger(__name__)
 
 # --- MÓDULO 1: Componentes Simétricos ---
 @app.callback(
@@ -20,7 +23,7 @@ from utils.utils_common import polar_to_complex
      Output('sym_graph_title_out', 'children')],
     [Input('sym-direction-dropdown', 'value')]
 )
-def update_sym_labels(direction):
+def update_sym_labels(direction: str) -> Tuple[str, str, str, str, str, str, str, str]:
     if direction == 'phase-to-sym':
         in_1 = "Fase A Mag:";
         in_2 = "Fase B Mag:";
